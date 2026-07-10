@@ -1,0 +1,69 @@
+name: Deploy ZenLeader PlugNMeet Client Fork
+
+# Build silentlamp/plugNmeet-client (zenleader/dev) and sync dist to VPS /opt/plugNmeet/client/dist
+
+on:
+  push:
+    branches: ["zenleader/dev"]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-plugnmeet-client-zenleader
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install & build
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
+          tar -czf client-dist.tgz -C dist .
+
+      - name: Upload to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_SSH_HOST }}
+          username: ${{ secrets.VPS_SSH_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: client-dist.tgz
+          target: /tmp
+
+      - name: Install on VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_SSH_HOST }}
+          username: ${{ secrets.VPS_SSH_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            sudo mkdir -p /opt/plugNmeet/client
+            if [ -d /opt/plugNmeet/client/dist ]; then
+              sudo mv /opt/plugNmeet/client/dist "/opt/plugNmeet/client/dist.bak.$(date +%Y%m%d%H%M%S)"
+            fi
+            sudo mkdir -p /opt/plugNmeet/client/dist
+            sudo tar -xzf /tmp/client-dist.tgz -C /opt/plugNmeet/client/dist
+            # Keep runtime config.js if previous backup has it
+            bak=$(ls -d /opt/plugNmeet/client/dist.bak.* 2>/dev/null | tail -1 || true)
+            if [ -n "$bak" ] && [ -f "$bak/assets/config.js" ]; then
+              sudo cp "$bak/assets/config.js" /opt/plugNmeet/client/dist/assets/config.js
+            elif [ -f /opt/plugNmeet/client/dist/assets/config_sample.js ] && [ ! -f /opt/plugNmeet/client/dist/assets/config.js ]; then
+              sudo cp /opt/plugNmeet/client/dist/assets/config_sample.js /opt/plugNmeet/client/dist/assets/config.js
+              sudo sed -i "s|serverUrl:.*|serverUrl: 'https://meet.zenleader.xyz',|" /opt/plugNmeet/client/dist/assets/config.js || true
+            fi
+            echo "client_commit=${GITHUB_SHA}" | sudo tee /opt/plugNmeet/.zenleader-client-info
+            echo "client_remote=silentlamp/plugNmeet-client" | sudo tee -a /opt/plugNmeet/.zenleader-client-info
+            echo "built_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" | sudo tee -a /opt/plugNmeet/.zenleader-client-info
+            curl -fsS -o /dev/null -w "meet_home=%{http_code}\n" https://meet.zenleader.xyz/
