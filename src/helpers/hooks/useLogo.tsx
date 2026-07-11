@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { useAppSelector } from '../../store';
+import { isBlockedBrandingUrl, resolveZenLeaderLogoPath } from '../branding';
 import { getConfigValue, isValidHttpUrl } from '../utils';
 
 interface CustomLogo {
@@ -8,6 +9,9 @@ interface CustomLogo {
   main_logo_dark?: string;
 }
 
+/**
+ * Resolves the meet header logo, preferring ZenLeader assets and ignoring upstream branding URLs.
+ */
 const useLogo = () => {
   const theme = useAppSelector((state) => state.roomSettings.theme);
 
@@ -17,12 +21,10 @@ const useLogo = () => {
     'STATIC_ASSETS_PATH',
   );
 
-  const [logo, setLogo] = useState<string>(
-    `${assetPath}/imgs/main-logo-light.png`,
-  );
-  const [darkLogo, setDarkLogo] = useState<string>(
-    `${assetPath}/imgs/main-logo-dark.png`,
-  );
+  const defaultLogo = resolveZenLeaderLogoPath(assetPath);
+
+  const [logo, setLogo] = useState<string>(defaultLogo);
+  const [darkLogo, setDarkLogo] = useState<string>(defaultLogo);
 
   useEffect(() => {
     const customLogo = getConfigValue<string | CustomLogo>(
@@ -36,8 +38,10 @@ const useLogo = () => {
     }
 
     if (typeof customLogo === 'string' && isValidHttpUrl(customLogo)) {
-      setLogo(customLogo);
-      setDarkLogo(customLogo);
+      if (!isBlockedBrandingUrl(customLogo)) {
+        setLogo(customLogo);
+        setDarkLogo(customLogo);
+      }
       return;
     }
 
@@ -45,24 +49,23 @@ const useLogo = () => {
       return;
     }
 
-    // Set light logo
     if (
       customLogo.main_logo_light &&
-      isValidHttpUrl(customLogo.main_logo_light)
+      isValidHttpUrl(customLogo.main_logo_light) &&
+      !isBlockedBrandingUrl(customLogo.main_logo_light)
     ) {
       setLogo(customLogo.main_logo_light);
     }
 
-    // Set dark logo
     if (
       customLogo.main_logo_dark &&
-      isValidHttpUrl(customLogo.main_logo_dark)
+      isValidHttpUrl(customLogo.main_logo_dark) &&
+      !isBlockedBrandingUrl(customLogo.main_logo_dark)
     ) {
       setDarkLogo(customLogo.main_logo_dark);
     }
-  }, []);
+  }, [assetPath]);
 
-  // Return the appropriate logo based on theme
   return theme === 'dark' ? darkLogo : logo;
 };
 
