@@ -70,7 +70,7 @@ jobs:
               sed -i "s|portalUrl:.*|portalUrl: 'https://portal.zenleader.xyz',|" "$DEST/assets/config.js"
             fi
             {
-              echo "client_commit=${GITHUB_SHA}"
+              echo "client_commit=${{ github.sha }}"
               echo "client_remote=silentlamp/plugNmeet-client"
               echo "built_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
               echo "portal_host=portal.zenleader.xyz"
