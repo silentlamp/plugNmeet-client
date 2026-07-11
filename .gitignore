@@ -5,5 +5,8 @@ npm-debug.log*
 src/assets/config.js
 .idea/
 dist
+portal-dist
+portal-dist.tgz
+client-dist.tgz
 node_modules/
 yarn.lock

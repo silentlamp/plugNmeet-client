@@ -50,8 +50,20 @@ export const verifyToken = once(
   ) => {
     const accessToken = getAccessToken();
     if (!accessToken) {
-      // ZenLeader: no meet token → React portal at /login (Fiber /login* route).
-      window.location.replace(`${window.location.origin}/login`);
+      // No room token → send user to learner portal (portal.zenleader.xyz in prod).
+      const cfg = (
+        window as unknown as {
+          plugNmeetConfig?: { portalUrl?: string };
+        }
+      ).plugNmeetConfig;
+      const host = window.location.hostname;
+      const isLocal = host === 'localhost' || host === '127.0.0.1';
+      const portalBase = (
+        cfg?.portalUrl ||
+        (isLocal ? window.location.origin : 'https://portal.zenleader.xyz')
+      ).replace(/\/$/, '');
+      // Local Vite MPA serves the portal entry at /login (rewritten to login.html).
+      window.location.replace(`${portalBase}/login`);
       return;
     } else if (
       window.location.protocol === 'http:' &&

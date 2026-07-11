@@ -31,6 +31,7 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm run build
           tar -czf client-dist.tgz -C dist .
+          bash scripts/package-portal-dist.sh
 
       - name: Upload to VPS
         uses: appleboy/scp-action@v0.1.7
@@ -38,7 +39,7 @@ jobs:
           host: ${{ secrets.VPS_SSH_HOST }}
           username: ${{ secrets.VPS_SSH_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: client-dist.tgz
+          source: client-dist.tgz,portal-dist.tgz
           target: /tmp
 
       - name: Install on VPS
@@ -55,14 +56,29 @@ jobs:
             fi
             sudo mkdir -p /opt/plugNmeet/client/dist
             sudo tar -xzf /tmp/client-dist.tgz -C /opt/plugNmeet/client/dist
-            # Always write ZenLeader runtime config from sample (no legacy config carry-over).
+            # Meeting SPA only — learner portal is on portal.zenleader.xyz.
+            sudo rm -f /opt/plugNmeet/client/dist/login.html
+            sudo rm -f /opt/plugNmeet/client/dist/assets/js/login-module.*.js
+            sudo rm -f /opt/plugNmeet/client/dist/assets/css/login.*.css
             if [ -f /opt/plugNmeet/client/dist/assets/config_sample.js ]; then
               sudo cp /opt/plugNmeet/client/dist/assets/config_sample.js /opt/plugNmeet/client/dist/assets/config.js
               sudo sed -i "s|serverUrl:.*|serverUrl: 'https://meet.zenleader.xyz',|" /opt/plugNmeet/client/dist/assets/config.js
-              sudo sed -i "s|apiBaseUrl:.*|apiBaseUrl: 'https://api.zenleader.xyz',|" /opt/plugNmeet/client/dist/assets/config.js
+              sudo sed -i "s|portalUrl:.*|portalUrl: 'https://portal.zenleader.xyz',|" /opt/plugNmeet/client/dist/assets/config.js
             fi
             echo "client_commit=${GITHUB_SHA}" | sudo tee /opt/plugNmeet/.zenleader-client-info
             echo "client_remote=silentlamp/plugNmeet-client" | sudo tee -a /opt/plugNmeet/.zenleader-client-info
             echo "built_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" | sudo tee -a /opt/plugNmeet/.zenleader-client-info
+            echo "portal_host=portal.zenleader.xyz" | sudo tee -a /opt/plugNmeet/.zenleader-client-info
+            # Deploy portal SPA if artifact present
+            if [ -f /tmp/portal-dist.tgz ] && [ -x /home/dev/zen-leader/scripts/ci-deploy-portal.sh ]; then
+              sudo /home/dev/zen-leader/scripts/ci-deploy-portal.sh /tmp/portal-dist.tgz
+            elif [ -f /tmp/portal-dist.tgz ]; then
+              sudo mkdir -p /var/www/portal.zenleader.xyz
+              sudo rm -rf /var/www/portal.zenleader.xyz/*
+              sudo tar -xzf /tmp/portal-dist.tgz -C /var/www/portal.zenleader.xyz
+              sudo chown -R www-data:www-data /var/www/portal.zenleader.xyz || true
+            fi
             curl -fsS -o /dev/null -w "meet_home=%{http_code}\n" https://meet.zenleader.xyz/
-            curl -fsS -o /dev/null -w "meet_login=%{http_code}\n" https://meet.zenleader.xyz/login
+            curl -fsSI https://meet.zenleader.xyz/login 2>/dev/null | tr -d '\r' | awk 'BEGIN{c=""} /^HTTP/{c=$2} tolower($1)=="location:"{print "meet_login=" c " location="$2; exit}'
+            curl -fsS -o /dev/null -w "portal_login=%{http_code}\n" https://portal.zenleader.xyz/login
+            sudo docker restart plugnmeet-plugnmeet-1 >/dev/null || true

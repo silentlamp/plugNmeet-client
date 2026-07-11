@@ -10,7 +10,8 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 export default defineConfig({
   root: join(__dirname, 'src'),
-  base: '',
+  // Absolute asset URLs so portal deep links on portal.zenleader.xyz resolve /assets/*.
+  base: '/',
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.jsx'],
     alias: {
@@ -88,16 +89,21 @@ export default defineConfig({
   },
   plugins: [
     {
-      // Canonical portal URL is /login; Vite entry file remains login.html.
-      name: 'zenleader-portal-login-path',
+      // Dev: serve portal SPA shell for learner routes (prod: portal.zenleader.xyz).
+      name: 'zenleader-portal-spa-dev',
       configureServer(server) {
+        const portalPaths = ['/login', '/my-courses', '/events', '/join'];
         server.middlewares.use((req, _res, next) => {
           if (!req.url) {
             next();
             return;
           }
-          if (req.url === '/login' || req.url.startsWith('/login?')) {
-            req.url = req.url.replace(/^\/login/, '/login.html');
+          const pathOnly = req.url.split('?')[0];
+          const hit = portalPaths.some(
+            (p) => pathOnly === p || pathOnly.startsWith(`${p}/`),
+          );
+          if (hit) {
+            req.url = req.url.replace(pathOnly, '/login.html');
           }
           next();
         });

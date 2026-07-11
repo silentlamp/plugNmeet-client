@@ -1,30 +1,41 @@
-import { useCallback, useState } from 'react';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
-import { hasZenSession } from './auth/session';
-import { HubPage } from './pages/HubPage';
+import { RequireAuth } from './auth/RequireAuth';
+import { PortalShell } from './layouts/PortalShell';
+import { CourseRunDetailPage } from './pages/CourseRunDetailPage';
+import { EventsPage } from './pages/EventsPage';
+import { JoinPage } from './pages/JoinPage';
 import { LoginPage } from './pages/LoginPage';
-
-type PortalView = 'login' | 'hub';
+import { MyCoursesPage } from './pages/MyCoursesPage';
 
 /**
- * ZenLeader meet portal shell: switches between sign-in and the Dojo-style hub.
- * Uses local view state (no react-router) so Fiber `/login` needs no extra routes.
+ * ZenLeader learner portal router (hosted on portal.zenleader.xyz).
  */
 export function PortalApp() {
-  const [view, setView] = useState<PortalView>(() =>
-    hasZenSession() ? 'hub' : 'login',
-  );
-
-  const goHub = useCallback(() => setView('hub'), []);
-  const goLogin = useCallback(() => setView('login'), []);
-
   return (
-    <div className={view === 'hub' ? 'zl-shell zl-shell-hub' : 'zl-shell'}>
-      {view === 'login' ? (
-        <LoginPage onSuccess={goHub} />
-      ) : (
-        <HubPage onSignedOut={goLogin} />
-      )}
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route element={<RequireAuth />}>
+          <Route
+            element={
+              <div className="zl-shell zl-shell-hub">
+                <PortalShell />
+              </div>
+            }
+          >
+            <Route index element={<Navigate to="/my-courses" replace />} />
+            <Route path="/my-courses" element={<MyCoursesPage />} />
+            <Route
+              path="/my-courses/:courseRunId"
+              element={<CourseRunDetailPage />}
+            />
+            <Route path="/events" element={<EventsPage />} />
+            <Route path="/join" element={<JoinPage />} />
+          </Route>
+        </Route>
+        <Route path="*" element={<Navigate to="/my-courses" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

@@ -1,6 +1,12 @@
 import type { EventResponse } from '../api/types';
+import { formatApiUtcLocal, parseApiUtcMs } from './timeUtils';
 
 export type EventBucket = 'live' | 'upcoming' | 'ended';
+
+type EventFlags = EventResponse & {
+  ongoing?: boolean;
+  is_ongoing?: boolean;
+};
 
 /**
  * Extracts a room code from event fields or `liveLink` query params.
@@ -29,37 +35,61 @@ export function extractRoomCode(event: EventResponse): string {
 }
 
 /**
- * Formats an ISO timestamp for hub cards.
+ * Formats an ISO timestamp for hub cards in the user's local timezone.
  *
- * @param iso - event time
+ * @param iso - event time (UTC from API)
  */
 export function formatEventTime(iso?: string): string {
-  if (!iso) {
-    return '';
-  }
-  try {
-    return new Date(iso).toLocaleString(undefined, {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
-  } catch {
-    return String(iso);
-  }
+  return formatApiUtcLocal(iso, {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 /**
- * Formats a compact time range for card meta.
+ * Compact start label for list rows (user local timezone).
  *
- * @param start - start ISO
- * @param end - end ISO
+ * @param iso - start time (UTC from API)
  */
-export function formatEventRange(start?: string, end?: string): string {
-  const a = formatEventTime(start);
-  const b = formatEventTime(end);
-  if (a && b) {
-    return `${a} → ${b}`;
+export function formatStartLabel(iso?: string): string {
+  return formatApiUtcLocal(iso, {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+/**
+ * Resolves whether an event is currently live.
+ * Prefers API `isOngoing` / `ongoing`, else derives from UTC start/end.
+ *
+ * @param event - event payload
+ */
+export function resolveIsOngoing(event: EventResponse): boolean {
+  const flags = event as EventFlags;
+  if (typeof flags.isOngoing === 'boolean') {
+    return flags.isOngoing;
   }
-  return a || b || '';
+  if (typeof flags.ongoing === 'boolean') {
+    return flags.ongoing;
+  }
+  if (typeof flags.is_ongoing === 'boolean') {
+    return flags.is_ongoing;
+  }
+  if (!event.startTime || !event.endTime) {
+    return false;
+  }
+  const now = Date.now();
+  const start = parseApiUtcMs(event.startTime);
+  const end = parseApiUtcMs(event.endTime);
+  return (
+    Number.isFinite(start) && Number.isFinite(end) && start <= now && now <= end
+  );
 }
 
 /**
@@ -69,25 +99,39 @@ export function formatEventRange(start?: string, end?: string): string {
  */
 export function classifyEvent(event: EventResponse): EventBucket {
   const now = Date.now();
-  if (String(event.status || '').toUpperCase() === 'COMPLETED') {
+  const status = String(event.status || '').toUpperCase();
+
+  if (status === 'CANCELLED') {
     return 'ended';
   }
-  if (event.isOngoing) {
+
+  // Trust server live flag before client clock/parse checks.
+  if (resolveIsOngoing(event)) {
     return 'live';
   }
-  try {
-    if (event.endTime && new Date(event.endTime).getTime() < now) {
-      return 'ended';
-    }
-    if (event.startTime && new Date(event.startTime).getTime() > now) {
-      return 'upcoming';
-    }
-    if (event.endTime && new Date(event.endTime).getTime() >= now) {
-      return 'live';
-    }
-  } catch {
-    // fall through
+
+  const endMs = parseApiUtcMs(event.endTime);
+  if (Number.isFinite(endMs) && endMs < now) {
+    return 'ended';
   }
+
+  if (status === 'COMPLETED') {
+    return 'ended';
+  }
+
+  const startMs = parseApiUtcMs(event.startTime);
+  if (Number.isFinite(startMs) && startMs > now) {
+    return 'upcoming';
+  }
+  if (
+    Number.isFinite(startMs) &&
+    Number.isFinite(endMs) &&
+    startMs <= now &&
+    endMs >= now
+  ) {
+    return 'live';
+  }
+
   return 'upcoming';
 }
 
@@ -116,20 +160,14 @@ export function partitionEvents(events: EventResponse[]): {
     }
   }
 
-  live.sort(
-    (a, b) =>
-      new Date(a.startTime || 0).getTime() -
-      new Date(b.startTime || 0).getTime(),
-  );
+  live.sort((a, b) => parseApiUtcMs(a.startTime) - parseApiUtcMs(b.startTime));
   upcoming.sort(
-    (a, b) =>
-      new Date(a.startTime || 0).getTime() -
-      new Date(b.startTime || 0).getTime(),
+    (a, b) => parseApiUtcMs(a.startTime) - parseApiUtcMs(b.startTime),
   );
   ended.sort(
     (a, b) =>
-      new Date(b.endTime || b.startTime || 0).getTime() -
-      new Date(a.endTime || a.startTime || 0).getTime(),
+      parseApiUtcMs(b.endTime || b.startTime) -
+      parseApiUtcMs(a.endTime || a.startTime),
   );
 
   return { live, upcoming, ended };

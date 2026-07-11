@@ -6,6 +6,10 @@ import {
 } from '../auth/session';
 import type {
   ApiResponse,
+  CourseResponse,
+  CourseRunResponse,
+  CourseSessionResponse,
+  EnrollmentResponse,
   EventResponse,
   MeetingTokenResponse,
   TokenResponse,
@@ -27,15 +31,29 @@ export class ZenApiError extends Error {
   }
 }
 
+type PlugNmeetConfig = {
+  apiBaseUrl?: string;
+  serverUrl?: string;
+  meetHomeUrl?: string;
+  portalUrl?: string;
+};
+
+/**
+ * Reads `window.plugNmeetConfig` safely.
+ */
+function getConfig(): PlugNmeetConfig {
+  return (
+    (window as unknown as { plugNmeetConfig?: PlugNmeetConfig })
+      .plugNmeetConfig || {}
+  );
+}
+
 /**
  * Resolves the ZenLeader Java API base URL from `plugNmeetConfig.apiBaseUrl`.
- * Local/prod defaults apply only when config is missing (no alternate global aliases).
  */
 export function getApiBaseUrl(): string {
-  const cfg = (
-    window as unknown as { plugNmeetConfig?: { apiBaseUrl?: string } }
-  ).plugNmeetConfig;
-  if (cfg?.apiBaseUrl) {
+  const cfg = getConfig();
+  if (cfg.apiBaseUrl) {
     return String(cfg.apiBaseUrl).replace(/\/$/, '');
   }
   const host = window.location.hostname;
@@ -43,6 +61,42 @@ export function getApiBaseUrl(): string {
     return 'http://localhost:8080';
   }
   return 'https://api.zenleader.xyz';
+}
+
+/**
+ * Resolves the meeting SPA home URL (always meet domain in production).
+ */
+export function getMeetHomeUrl(): string {
+  const cfg = getConfig();
+  if (cfg.meetHomeUrl) {
+    return String(cfg.meetHomeUrl).replace(/\/?$/, '/');
+  }
+  if (cfg.serverUrl) {
+    return String(cfg.serverUrl).replace(/\/?$/, '/');
+  }
+  const host = window.location.hostname;
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return `${window.location.origin}/`;
+  }
+  return 'https://meet.zenleader.xyz/';
+}
+
+/**
+ * Resolves the learner portal base URL.
+ */
+export function getPortalUrl(): string {
+  const cfg = getConfig();
+  if (cfg.portalUrl) {
+    return String(cfg.portalUrl).replace(/\/$/, '');
+  }
+  const host = window.location.hostname;
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return window.location.origin;
+  }
+  if (host === 'portal.zenleader.xyz') {
+    return 'https://portal.zenleader.xyz';
+  }
+  return 'https://portal.zenleader.xyz';
 }
 
 type FetchOptions = {
@@ -147,6 +201,71 @@ export async function fetchMyInterests(): Promise<EventResponse[]> {
 }
 
 /**
+ * Loads the current user's course enrollments.
+ */
+export async function fetchMyEnrollments(): Promise<EnrollmentResponse[]> {
+  const data = await apiFetch<EnrollmentResponse[]>('/api/v1/enrollments/me');
+  return Array.isArray(data) ? data : [];
+}
+
+/**
+ * Loads a course run by id.
+ *
+ * @param courseRunId - course run id
+ */
+export async function fetchCourseRun(
+  courseRunId: string,
+): Promise<CourseRunResponse> {
+  return apiFetch<CourseRunResponse>(
+    `/api/v1/course-runs/${encodeURIComponent(courseRunId)}`,
+  );
+}
+
+/**
+ * Loads a course by id.
+ *
+ * @param courseId - course id
+ */
+export async function fetchCourse(courseId: string): Promise<CourseResponse> {
+  return apiFetch<CourseResponse>(
+    `/api/v1/courses/${encodeURIComponent(courseId)}`,
+  );
+}
+
+/**
+ * Loads LMS live sessions for a course run.
+ *
+ * @param courseRunId - course run id
+ */
+export async function fetchSessions(
+  courseRunId: string,
+): Promise<CourseSessionResponse[]> {
+  const data = await apiFetch<CourseSessionResponse[]>(
+    `/api/v1/sessions?courseRunId=${encodeURIComponent(courseRunId)}`,
+  );
+  return Array.isArray(data) ? data : [];
+}
+
+/**
+ * Records JOINED attendance for a course session (mobile parity).
+ *
+ * @param courseRunId - course run id
+ * @param sessionId - session id
+ */
+export async function upsertSessionJoined(
+  courseRunId: string,
+  sessionId: string,
+): Promise<void> {
+  await apiFetch(
+    `/api/v1/progress/me/course-runs/${encodeURIComponent(courseRunId)}/sessions/${encodeURIComponent(sessionId)}`,
+    {
+      method: 'PUT',
+      body: { status: 'JOINED' },
+    },
+  );
+}
+
+/**
  * Requests a PlugNMeet join token for the given room code.
  *
  * @param roomCode - live session / event room code
@@ -166,13 +285,6 @@ export async function fetchMeetingToken(roomCode: string): Promise<string> {
   }
 
   return data.token;
-}
-
-/**
- * Builds the meeting home URL (`/`) from the current portal location.
- */
-export function getMeetHomeUrl(): string {
-  return `${window.location.origin}/`;
 }
 
 /**

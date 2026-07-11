@@ -8,7 +8,7 @@ const HeaderLogo = () => {
       <img
         className="max-h-full max-w-full object-contain ltr:object-left rtl:object-right cursor-default"
         src={logo}
-        alt="logo"
+        alt="ZenLeader"
       />
     </div>
   );

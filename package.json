@@ -47,6 +47,7 @@
     "react-i18next": "17.0.8",
     "react-player": "3.4.0",
     "react-redux": "9.3.0",
+    "react-router-dom": "^7.18.1",
     "react-toastify": "11.1.0",
     "resumablejs": "1.1.0",
     "sanitize-html": "2.17.5"
