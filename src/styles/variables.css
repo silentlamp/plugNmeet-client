@@ -17,46 +17,51 @@
   --shadow-input-focus: 0px 0px 0px 4px rgba(31, 62, 114, 0.25);
   --shadow-video-name: 0px 1px 4px 0px rgba(0, 0, 0, 0.25);
 
-  /* Zen Leader Mobile AppColors equivalents */
-  --color-primary-color: #1f3e72;
-  --color-secondary-color: #87c744;
-  --color-brand-red: #ca3120;
-  --color-dark-primary: #101114;
-  --color-dark-secondary: #1e1e1e;
-  --color-dark-secondary2: #1a3550;
-  --color-dark-secondary3: #141a24;
-  --color-dark-text: #8fb1ff;
-  --color-Blue: #02a190;
-  --color-Dark-blue: #1a5467;
+  /*
+   * Zen Leader Mobile AppColors equivalents
+   * Source: zen-leader/lib/theme/app_colors.dart
+   * Semantic: primary CTA → primaryBlue; secondary chrome → teal;
+   * success/join → primaryGreen; danger → primaryRed.
+   */
+  --color-primary-color: #1f3e72; /* primaryBlue */
+  --color-secondary-color: #02a190; /* teal (NOT success green) */
+  --color-brand-red: #ca3120; /* primaryRed */
+  --color-dark-primary: #101114; /* darkBackground */
+  --color-dark-secondary: #1e1e1e; /* darkSurface */
+  --color-dark-secondary2: #1a3550; /* darkHeroEnd */
+  --color-dark-secondary3: #141a24; /* darkDialog */
+  --color-dark-text: #8fb1ff; /* linkBlueDark */
+  --color-Blue: #1f3e72; /* primaryBlue — CTA / bg-Blue */
+  --color-Dark-blue: #1a5467; /* deepTeal */
 
   --color-Gray-25: #fafafa;
-  --color-Gray-50: #f8f9fa;
-  --color-Gray-100: #f0f0f0;
-  --color-Gray-200: #e8e3e3;
+  --color-Gray-50: #f8f9fa; /* surfaceLight */
+  --color-Gray-100: #f8f8f8; /* surfaceSoft */
+  --color-Gray-200: #e8e3e3; /* borderSoft */
   --color-Gray-300: #d4d0d0;
-  --color-Gray-500: rgba(156, 163, 175, 1);
-  --color-Gray-600: #1a5467;
-  --color-Gray-700: #1f3e72;
-  --color-Gray-800: #1b2028;
-  --color-Gray-900: #1e1e1e;
-  --color-Gray-950: #101114;
+  --color-Gray-500: #9ca3af; /* nav inactive */
+  --color-Gray-600: #1a5467; /* textMuted / deepTeal */
+  --color-Gray-700: #1f3e72; /* textMain / primaryBlue */
+  --color-Gray-800: #1b2028; /* darkSurfaceElevated */
+  --color-Gray-900: #1e1e1e; /* darkSurface */
+  --color-Gray-950: #101114; /* darkBackground */
 
   --color-Red-25: #fffafa;
   --color-Red-50: #fdecea;
   --color-Red-100: rgba(250, 225, 225, 1);
   --color-Red-200: #f5b5ae;
-  --color-Red-400: #ca3120;
-  --color-Red-600: #ca3120;
+  --color-Red-400: #ca3120; /* primaryRed */
+  --color-Red-600: #ca3120; /* error */
   --color-Red-700: #9e2719;
 
   --color-Green-100: rgba(240, 249, 232, 1);
-  --color-Green-700: rgba(135, 199, 68, 1);
+  --color-Green-700: #87c744; /* primaryGreen / success / accent */
 
   --color-Blue2-50: #eef2f8;
-  --color-Blue2-500: #0d6efd;
-  --color-Blue2-600: #02a190;
-  --color-Blue2-700: #1f3e72;
-  --color-Blue2-800: rgba(20, 34, 54, 1);
+  --color-Blue2-500: #1f3e72; /* primaryBlue — toggles / primary actions */
+  --color-Blue2-600: #142236; /* darkHeroStart */
+  --color-Blue2-700: #1a5467; /* deepTeal */
+  --color-Blue2-800: #142236; /* darkHeroStart */
 
   --radius-tlbl-d: 0 0 20px 20px;
   --radius-trbr-d: 20px 20px 0 0;

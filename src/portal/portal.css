@@ -1,17 +1,17 @@
 @import 'tailwindcss';
 
 :root {
-  /* AppColors (zen-leader-mobile) */
-  --zl-navy: #1f3e72;
-  --zl-navy-deep: #142236;
-  --zl-green: #87c744;
-  --zl-teal: #02a190;
-  --zl-surface: #f8f9fa;
+  /* AppColors (zen-leader/lib/theme/app_colors.dart) */
+  --zl-navy: #1f3e72; /* primaryBlue */
+  --zl-navy-deep: #142236; /* darkHeroStart */
+  --zl-green: #87c744; /* primaryGreen / success */
+  --zl-teal: #02a190; /* teal — secondary chrome */
+  --zl-surface: #f8f9fa; /* surfaceLight */
   --zl-card: #ffffff;
-  --zl-border: #e8e3e3;
-  --zl-muted: #1a5467;
-  --zl-danger: #ca3120;
-  --zl-sidebar: #142236;
+  --zl-border: #e8e3e3; /* borderSoft */
+  --zl-muted: #1a5467; /* textMuted / deepTeal */
+  --zl-danger: #ca3120; /* primaryRed */
+  --zl-sidebar: #142236; /* darkHeroStart */
   --zl-sidebar-text: #d7e0ef;
   --zl-shadow: 0 10px 30px rgba(31, 62, 114, 0.08);
   --zl-sidebar-w: 17.5rem;
