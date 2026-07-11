@@ -81,13 +81,10 @@ jobs:
             # Deploy portal SPA — inline extract (CI user has no sudo; avoid host scripts/CRLF).
             if [ -f /tmp/portal-dist.tgz ]; then
               PORTAL_ROOT=/var/www/portal.zenleader.xyz
-              EXTRACT=$(mktemp -d)
-              tar -xzf /tmp/portal-dist.tgz -C "$EXTRACT"
               mkdir -p "$PORTAL_ROOT"
-              # Replace contents without needing chown on the directory inode.
               find "$PORTAL_ROOT" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
-              cp -a "$EXTRACT"/. "$PORTAL_ROOT"/
-              rm -rf "$EXTRACT"
+              # --touch avoids utime on the web-root inode (not owned by deploy user).
+              tar --no-same-owner --touch -xzf /tmp/portal-dist.tgz -C "$PORTAL_ROOT"
               echo "portal_deployed=$PORTAL_ROOT"
             fi
             curl -fsS -o /dev/null -w "meet_home=%{http_code}\n" https://meet.zenleader.xyz/
