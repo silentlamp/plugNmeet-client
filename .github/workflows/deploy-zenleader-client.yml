@@ -50,35 +50,46 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             set -euo pipefail
-            sudo mkdir -p /opt/plugNmeet/client
-            if [ -d /opt/plugNmeet/client/dist ]; then
-              sudo mv /opt/plugNmeet/client/dist "/opt/plugNmeet/client/dist.bak.$(date +%Y%m%d%H%M%S)"
+            # CI user is typically `dev` (docker group, no passwordless sudo).
+            # /opt/plugNmeet/client must be writable by that user (see zen-leader-deploy AGENTS.md).
+            CLIENT_ROOT=/opt/plugNmeet/client
+            DEST="$CLIENT_ROOT/dist"
+            mkdir -p "$CLIENT_ROOT"
+            if [ -d "$DEST" ]; then
+              mv "$DEST" "$CLIENT_ROOT/dist.bak.$(date +%Y%m%d%H%M%S)"
             fi
-            sudo mkdir -p /opt/plugNmeet/client/dist
-            sudo tar -xzf /tmp/client-dist.tgz -C /opt/plugNmeet/client/dist
+            mkdir -p "$DEST"
+            tar -xzf /tmp/client-dist.tgz -C "$DEST"
             # Meeting SPA only — learner portal is on portal.zenleader.xyz.
-            sudo rm -f /opt/plugNmeet/client/dist/login.html
-            sudo rm -f /opt/plugNmeet/client/dist/assets/js/login-module.*.js
-            sudo rm -f /opt/plugNmeet/client/dist/assets/css/login.*.css
-            if [ -f /opt/plugNmeet/client/dist/assets/config_sample.js ]; then
-              sudo cp /opt/plugNmeet/client/dist/assets/config_sample.js /opt/plugNmeet/client/dist/assets/config.js
-              sudo sed -i "s|serverUrl:.*|serverUrl: 'https://meet.zenleader.xyz',|" /opt/plugNmeet/client/dist/assets/config.js
-              sudo sed -i "s|portalUrl:.*|portalUrl: 'https://portal.zenleader.xyz',|" /opt/plugNmeet/client/dist/assets/config.js
+            rm -f "$DEST/login.html"
+            rm -f "$DEST"/assets/js/login-module.*.js
+            rm -f "$DEST"/assets/css/login.*.css
+            if [ -f "$DEST/assets/config_sample.js" ]; then
+              cp "$DEST/assets/config_sample.js" "$DEST/assets/config.js"
+              sed -i "s|serverUrl:.*|serverUrl: 'https://meet.zenleader.xyz',|" "$DEST/assets/config.js"
+              sed -i "s|portalUrl:.*|portalUrl: 'https://portal.zenleader.xyz',|" "$DEST/assets/config.js"
             fi
-            echo "client_commit=${GITHUB_SHA}" | sudo tee /opt/plugNmeet/.zenleader-client-info
-            echo "client_remote=silentlamp/plugNmeet-client" | sudo tee -a /opt/plugNmeet/.zenleader-client-info
-            echo "built_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" | sudo tee -a /opt/plugNmeet/.zenleader-client-info
-            echo "portal_host=portal.zenleader.xyz" | sudo tee -a /opt/plugNmeet/.zenleader-client-info
-            # Deploy portal SPA if artifact present
-            if [ -f /tmp/portal-dist.tgz ] && [ -x /home/dev/zen-leader/scripts/ci-deploy-portal.sh ]; then
-              sudo /home/dev/zen-leader/scripts/ci-deploy-portal.sh /tmp/portal-dist.tgz
-            elif [ -f /tmp/portal-dist.tgz ]; then
-              sudo mkdir -p /var/www/portal.zenleader.xyz
-              sudo rm -rf /var/www/portal.zenleader.xyz/*
-              sudo tar -xzf /tmp/portal-dist.tgz -C /var/www/portal.zenleader.xyz
-              sudo chown -R www-data:www-data /var/www/portal.zenleader.xyz || true
+            {
+              echo "client_commit=${GITHUB_SHA}"
+              echo "client_remote=silentlamp/plugNmeet-client"
+              echo "built_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+              echo "portal_host=portal.zenleader.xyz"
+            } > /opt/plugNmeet/.zenleader-client-info 2>/dev/null || {
+              # info file may be root-owned; best-effort
+              echo "warn: could not write .zenleader-client-info" >&2
+            }
+            # Deploy portal SPA (web root is world-writable / owned for deploy user)
+            if [ -f /tmp/portal-dist.tgz ]; then
+              if [ -x /home/dev/zen-leader/scripts/ci-deploy-portal.sh ]; then
+                bash /home/dev/zen-leader/scripts/ci-deploy-portal.sh /tmp/portal-dist.tgz
+              else
+                PORTAL_ROOT=/var/www/portal.zenleader.xyz
+                mkdir -p "$PORTAL_ROOT"
+                rm -rf "${PORTAL_ROOT:?}/"*
+                tar -xzf /tmp/portal-dist.tgz -C "$PORTAL_ROOT"
+              fi
             fi
             curl -fsS -o /dev/null -w "meet_home=%{http_code}\n" https://meet.zenleader.xyz/
             curl -fsSI https://meet.zenleader.xyz/login 2>/dev/null | tr -d '\r' | awk 'BEGIN{c=""} /^HTTP/{c=$2} tolower($1)=="location:"{print "meet_login=" c " location="$2; exit}'
             curl -fsS -o /dev/null -w "portal_login=%{http_code}\n" https://portal.zenleader.xyz/login
-            sudo docker restart plugnmeet-plugnmeet-1 >/dev/null || true
+            docker restart plugnmeet-plugnmeet-1 >/dev/null || true
