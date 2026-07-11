@@ -78,13 +78,17 @@ jobs:
               # info file may be root-owned; best-effort
               echo "warn: could not write .zenleader-client-info" >&2
             }
-            # Deploy portal SPA — inline extract (CI user has no sudo; avoid host scripts/CRLF).
+            # Deploy portal SPA — extract to temp then move children (CI user cannot
+            # chmod/utime the portal web-root inode owned by www-data/root).
             if [ -f /tmp/portal-dist.tgz ]; then
               PORTAL_ROOT=/var/www/portal.zenleader.xyz
+              EXTRACT=$(mktemp -d)
+              tar -xzf /tmp/portal-dist.tgz -C "$EXTRACT"
               mkdir -p "$PORTAL_ROOT"
               find "$PORTAL_ROOT" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
-              # --touch avoids utime on the web-root inode (not owned by deploy user).
-              tar --no-same-owner --touch -xzf /tmp/portal-dist.tgz -C "$PORTAL_ROOT"
+              shopt -s dotglob nullglob
+              mv "$EXTRACT"/* "$PORTAL_ROOT"/
+              rm -rf "$EXTRACT"
               echo "portal_deployed=$PORTAL_ROOT"
             fi
             curl -fsS -o /dev/null -w "meet_home=%{http_code}\n" https://meet.zenleader.xyz/
