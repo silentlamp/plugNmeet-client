@@ -80,8 +80,13 @@ jobs:
             }
             # Deploy portal SPA (web root is world-writable / owned for deploy user)
             if [ -f /tmp/portal-dist.tgz ]; then
-              if [ -x /home/dev/zen-leader/scripts/ci-deploy-portal.sh ]; then
-                bash /home/dev/zen-leader/scripts/ci-deploy-portal.sh /tmp/portal-dist.tgz
+              PORTAL_SCRIPT=/home/dev/zen-leader/scripts/ci-deploy-portal.sh
+              if [ -f "$PORTAL_SCRIPT" ]; then
+                sed -i 's/\r$//' "$PORTAL_SCRIPT" || true
+                chmod +x "$PORTAL_SCRIPT" || true
+              fi
+              if [ -x "$PORTAL_SCRIPT" ]; then
+                bash "$PORTAL_SCRIPT" /tmp/portal-dist.tgz
               else
                 PORTAL_ROOT=/var/www/portal.zenleader.xyz
                 mkdir -p "$PORTAL_ROOT"
