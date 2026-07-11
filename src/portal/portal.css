@@ -1,18 +1,19 @@
 @import 'tailwindcss';
 
 :root {
+  /* AppColors (zen-leader-mobile) */
   --zl-navy: #1f3e72;
   --zl-navy-deep: #142236;
   --zl-green: #87c744;
-  --zl-teal: #1a5467;
-  --zl-surface: #f5f7fa;
+  --zl-teal: #02a190;
+  --zl-surface: #f8f9fa;
   --zl-card: #ffffff;
-  --zl-border: #e5e8ee;
-  --zl-muted: #5a6b7d;
+  --zl-border: #e8e3e3;
+  --zl-muted: #1a5467;
   --zl-danger: #ca3120;
-  --zl-sidebar: #0f1c33;
+  --zl-sidebar: #142236;
   --zl-sidebar-text: #d7e0ef;
-  --zl-shadow: 0 10px 30px rgba(15, 28, 51, 0.08);
+  --zl-shadow: 0 10px 30px rgba(31, 62, 114, 0.08);
   --zl-sidebar-w: 17.5rem;
 }
 
@@ -278,6 +279,15 @@ body {
   font-weight: 500;
 }
 
+.zl-nav-btn {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
 .zl-nav-item:hover {
   background: rgba(255, 255, 255, 0.06);
 }
@@ -446,6 +456,80 @@ body {
 .zl-join-form {
   display: flex;
   flex-direction: column;
+}
+
+.zl-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.zl-dialog-scrim {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(16, 17, 20, 0.48);
+  cursor: pointer;
+}
+
+.zl-dialog {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+  background: var(--zl-card);
+  border: 1px solid var(--zl-border);
+  border-radius: 16px;
+  box-shadow: var(--zl-shadow);
+  padding: 24px;
+}
+
+.zl-dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.zl-dialog-head h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--zl-navy);
+}
+
+.zl-dialog-head p {
+  margin: 4px 0 0;
+  color: var(--zl-muted);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.zl-dialog-close {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: var(--zl-surface);
+  color: var(--zl-navy);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.zl-dialog-close:hover:not(:disabled) {
+  background: var(--zl-border);
+}
+
+.zl-dialog-close:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .zl-main {
@@ -826,7 +910,7 @@ body {
     inset: 0;
     z-index: 30;
     border: none;
-    background: rgba(15, 28, 51, 0.45);
+    background: rgba(16, 17, 20, 0.45);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease;

@@ -1,14 +1,22 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 
 import { getZenEmail } from '../auth/session';
-import { logout } from '../api/zenleaderApi';
+import {
+  fetchMeetingToken,
+  logout,
+  redirectToMeeting,
+  ZenApiError,
+} from '../api/zenleaderApi';
 
 /**
  * Authenticated portal chrome: sidebar nav + main outlet.
  */
 export function PortalShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [joinOpen, setJoinOpen] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const [joining, setJoining] = useState(false);
   const navigate = useNavigate();
   const email = getZenEmail();
   const initials = (email || 'U').slice(0, 1).toUpperCase();
@@ -19,6 +27,62 @@ export function PortalShell() {
   };
 
   const closeSidebar = () => setSidebarOpen(false);
+
+  /**
+   * Opens the join-by-code dialog and closes the mobile drawer if needed.
+   */
+  const openJoinDialog = () => {
+    setJoinError(null);
+    setSidebarOpen(false);
+    setJoinOpen(true);
+  };
+
+  /**
+   * Closes the join dialog and clears in-flight join UI state.
+   */
+  const closeJoinDialog = () => {
+    if (joining) {
+      return;
+    }
+    setJoinOpen(false);
+    setJoinError(null);
+  };
+
+  /**
+   * Requests a meeting token for the room code and redirects to Meet.
+   *
+   * @param roomCode - PlugNMeet room code from the dialog form
+   */
+  const handleJoin = async (roomCode: string) => {
+    setJoinError(null);
+    setJoining(true);
+    try {
+      const token = await fetchMeetingToken(roomCode);
+      redirectToMeeting(token);
+    } catch (err) {
+      if (err instanceof ZenApiError && err.status === 401) {
+        await logout();
+        navigate('/login', { replace: true });
+        return;
+      }
+      setJoinError(err instanceof Error ? err.message : 'Unable to join room');
+      setJoining(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!joinOpen) {
+      return;
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !joining) {
+        setJoinOpen(false);
+        setJoinError(null);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [joinOpen, joining]);
 
   return (
     <div className={`zl-app${sidebarOpen ? ' zl-sidebar-open' : ''}`}>
@@ -38,12 +102,13 @@ export function PortalShell() {
           </div>
         </div>
 
-        <nav className="zl-sidebar-nav" onClick={closeSidebar}>
+        <nav className="zl-sidebar-nav">
           <NavLink
             to="/my-courses"
             className={({ isActive }) =>
               `zl-nav-item${isActive ? ' zl-nav-active' : ''}`
             }
+            onClick={closeSidebar}
           >
             My courses
           </NavLink>
@@ -52,17 +117,17 @@ export function PortalShell() {
             className={({ isActive }) =>
               `zl-nav-item${isActive ? ' zl-nav-active' : ''}`
             }
+            onClick={closeSidebar}
           >
             Events
           </NavLink>
-          <NavLink
-            to="/join"
-            className={({ isActive }) =>
-              `zl-nav-item${isActive ? ' zl-nav-active' : ''}`
-            }
+          <button
+            type="button"
+            className="zl-nav-item zl-nav-btn"
+            onClick={openJoinDialog}
           >
             Join room
-          </NavLink>
+          </button>
         </nav>
 
         <div className="zl-sidebar-footer">
@@ -99,12 +164,50 @@ export function PortalShell() {
         </header>
         <Outlet />
       </div>
+
+      {joinOpen ? (
+        <div className="zl-dialog-backdrop" role="presentation">
+          <button
+            type="button"
+            className="zl-dialog-scrim"
+            aria-label="Close join dialog"
+            onClick={closeJoinDialog}
+          />
+          <div
+            className="zl-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="zl-join-dialog-title"
+          >
+            <div className="zl-dialog-head">
+              <div>
+                <h2 id="zl-join-dialog-title">Join room</h2>
+                <p>Enter a room code to join a live meeting</p>
+              </div>
+              <button
+                type="button"
+                className="zl-dialog-close"
+                aria-label="Close"
+                onClick={closeJoinDialog}
+                disabled={joining}
+              >
+                ×
+              </button>
+            </div>
+            <JoinRoomForm
+              onJoin={(code) => void handleJoin(code)}
+              joining={joining}
+              error={joinError}
+            />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
 
 /**
- * Compact join-by-code form used on the Join page.
+ * Compact join-by-code form used in the sidebar Join room dialog.
  *
  * @param onJoin - submit handler with room code
  * @param joining - whether a join request is in flight
@@ -142,6 +245,7 @@ export function JoinRoomForm({
           required
           placeholder="Room code"
           autoComplete="off"
+          autoFocus
           disabled={joining}
         />
       </div>

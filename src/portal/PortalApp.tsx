@@ -4,7 +4,6 @@ import { RequireAuth } from './auth/RequireAuth';
 import { PortalShell } from './layouts/PortalShell';
 import { CourseRunDetailPage } from './pages/CourseRunDetailPage';
 import { EventsPage } from './pages/EventsPage';
-import { JoinPage } from './pages/JoinPage';
 import { LoginPage } from './pages/LoginPage';
 import { MyCoursesPage } from './pages/MyCoursesPage';
 
@@ -31,7 +30,10 @@ export function PortalApp() {
               element={<CourseRunDetailPage />}
             />
             <Route path="/events" element={<EventsPage />} />
-            <Route path="/join" element={<JoinPage />} />
+            <Route
+              path="/join"
+              element={<Navigate to="/my-courses" replace />}
+            />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/my-courses" replace />} />
