@@ -4,7 +4,7 @@ name: Deploy ZenLeader PlugNMeet Client Fork
 
 on:
   push:
-    branches: ["zenleader/dev"]
+    branches: ['zenleader/dev']
   workflow_dispatch:
 
 concurrency:
@@ -23,7 +23,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: '22'
           cache: pnpm
 
       - name: Install & build
@@ -55,15 +55,14 @@ jobs:
             fi
             sudo mkdir -p /opt/plugNmeet/client/dist
             sudo tar -xzf /tmp/client-dist.tgz -C /opt/plugNmeet/client/dist
-            # Keep runtime config.js if previous backup has it
-            bak=$(ls -d /opt/plugNmeet/client/dist.bak.* 2>/dev/null | tail -1 || true)
-            if [ -n "$bak" ] && [ -f "$bak/assets/config.js" ]; then
-              sudo cp "$bak/assets/config.js" /opt/plugNmeet/client/dist/assets/config.js
-            elif [ -f /opt/plugNmeet/client/dist/assets/config_sample.js ] && [ ! -f /opt/plugNmeet/client/dist/assets/config.js ]; then
+            # Always write ZenLeader runtime config from sample (no legacy config carry-over).
+            if [ -f /opt/plugNmeet/client/dist/assets/config_sample.js ]; then
               sudo cp /opt/plugNmeet/client/dist/assets/config_sample.js /opt/plugNmeet/client/dist/assets/config.js
-              sudo sed -i "s|serverUrl:.*|serverUrl: 'https://meet.zenleader.xyz',|" /opt/plugNmeet/client/dist/assets/config.js || true
+              sudo sed -i "s|serverUrl:.*|serverUrl: 'https://meet.zenleader.xyz',|" /opt/plugNmeet/client/dist/assets/config.js
+              sudo sed -i "s|apiBaseUrl:.*|apiBaseUrl: 'https://api.zenleader.xyz',|" /opt/plugNmeet/client/dist/assets/config.js
             fi
             echo "client_commit=${GITHUB_SHA}" | sudo tee /opt/plugNmeet/.zenleader-client-info
             echo "client_remote=silentlamp/plugNmeet-client" | sudo tee -a /opt/plugNmeet/.zenleader-client-info
             echo "built_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" | sudo tee -a /opt/plugNmeet/.zenleader-client-info
             curl -fsS -o /dev/null -w "meet_home=%{http_code}\n" https://meet.zenleader.xyz/
+            curl -fsS -o /dev/null -w "meet_login=%{http_code}\n" https://meet.zenleader.xyz/login

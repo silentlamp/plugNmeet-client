@@ -15,10 +15,13 @@ import ConfirmationModal from '../../../helpers/ui/confirmationModal';
 import { EndMeetingIconSVG } from '../../../assets/Icons/EndMeetingIconSVG';
 
 /**
- * Host leave control:
- * - Leave only → local endSession (room stays open for others)
- * - End for everyone → POST /api/endRoom
+ * Host leave control (ZenLeader requirement):
+ * - Leave only → local `endSession` / disconnect. Room **stays open** for remaining
+ *   participants (including when the host/admin leaves).
+ * - End for everyone → POST `/api/endRoom` (explicit host action only).
  * Non-admin: leave only.
+ *
+ * Do not call `endRoom` on plain leave — that was the old behavior that kicked everyone.
  */
 const EndMeetingButton = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);

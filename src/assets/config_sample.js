@@ -1,7 +1,10 @@
 // We'll define a single configuration object.
 window.plugNmeetConfig = {
-  // The URL of your plugNmeet server.
+  // The URL of your plugNmeet / meet server (signaling + static client).
   serverUrl: 'http://localhost:8080',
+
+  // ZenLeader Java API - used by the React meet portal (auth + events + join token).
+  apiBaseUrl: 'https://api.zenleader.xyz',
 
   // This is helpful for external plugin development where images or other files are located
   // in another place.

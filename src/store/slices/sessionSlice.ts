@@ -31,8 +31,8 @@ const initialState: ISession = {
     sid: '',
     roomId: '',
     metadata: create(RoomMetadataSchema, {
-      roomTitle: 'plugNmeet',
-      welcomeMessage: 'Welcome to plugNmeet!',
+      roomTitle: 'ZenLeader Meet',
+      welcomeMessage: 'Welcome to ZenLeader Meet!',
       isRecording: false,
       isActiveRtmp: false,
       parentRoomId: '',
@@ -110,7 +110,7 @@ const initialState: ISession = {
       },
       copyrightConf: {
         display: true,
-        text: 'Powered by <a href="https://www.plugnmeet.org" target="_blank">plugNmeet</a>',
+        text: 'Powered by <a href="https://zenleader.xyz" target="_blank">ZenLeader</a>',
       },
     }),
   },

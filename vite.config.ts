@@ -27,11 +27,51 @@ export default defineConfig({
     assetsInlineLimit: 0,
     chunkSizeWarningLimit: 6000,
     rolldownOptions: {
+      input: {
+        main: resolve(__dirname, 'src/index.html'),
+        login: resolve(__dirname, 'src/login.html'),
+      },
       output: {
-        entryFileNames: 'assets/js/main-module.[hash].js',
+        // [name] keeps meeting (`main`) and portal (`login`) entry bundles separate.
+        entryFileNames: 'assets/js/[name]-module.[hash].js',
         chunkFileNames: 'assets/chunks/[name].[hash].js',
         assetFileNames: ({ names }) => assetFileNames(names),
-        manualChunks: manualChunks,
+        // Rolldown advancedChunks: React must outrank excalidraw so the portal
+        // entry does not import React from the ~5MB excalidraw chunk.
+        advancedChunks: {
+          groups: [
+            {
+              name: 'react',
+              test: /node_modules[/\\](?:react-dom|react|scheduler)(?:[/\\]|$)/,
+              priority: 50,
+            },
+            {
+              name: 'excalidraw',
+              test: /node_modules[/\\]@excalidraw[/\\]|[/\\]\.pnpm[/\\]@excalidraw/,
+              priority: 40,
+            },
+            {
+              name: 'mermaid',
+              test: /node_modules[/\\]mermaid(?:[/\\]|$)|[/\\]\.pnpm[/\\]mermaid@/,
+              priority: 40,
+            },
+            {
+              name: 'react-libs',
+              test: /node_modules[/\\](?:react-dnd|dnd-core|react-cool-virtual|react-virtual|react-hotkeys-hook|react-draggable|react-player|@headlessui|i18next)(?:[/\\]|$)/,
+              priority: 30,
+            },
+            {
+              name: 'pnm',
+              test: /node_modules[/\\](?:plugnmeet-protocol|@bufbuild|axios|@nats-io|@reduxjs|redux)(?:[/\\]|$)/,
+              priority: 30,
+            },
+            {
+              name: 'vendor',
+              test: /node_modules/,
+              priority: 10,
+            },
+          ],
+        },
       },
       watch: {
         exclude: 'node_modules/**',
@@ -47,6 +87,22 @@ export default defineConfig({
     },
   },
   plugins: [
+    {
+      // Canonical portal URL is /login; Vite entry file remains login.html.
+      name: 'zenleader-portal-login-path',
+      configureServer(server) {
+        server.middlewares.use((req, _res, next) => {
+          if (!req.url) {
+            next();
+            return;
+          }
+          if (req.url === '/login' || req.url.startsWith('/login?')) {
+            req.url = req.url.replace(/^\/login/, '/login.html');
+          }
+          next();
+        });
+      },
+    },
     react(),
     tailwindcss(),
     viteStaticCopy(getStaticFilesToCopy()),
@@ -87,59 +143,6 @@ function assetFileNames(names: string[]) {
   return 'assets/js/[name][extname]';
 }
 
-const vendorChunkMap: Record<string, string[]> = {
-  mermaid: ['mermaid'],
-  excalidraw: ['@excalidraw'],
-  'react-libs': [
-    'react-dnd',
-    'dnd-core',
-    'react-cool-virtual',
-    'react-virtual',
-    'react-hotkeys-hook',
-    'react-draggable',
-    'react-player',
-    '@headlessui',
-    'i18next',
-  ],
-  pnm: ['plugnmeet-protocol', '@bufbuild', 'axios', '@nats-io', 'redux'],
-};
-
-function manualChunks(id: string) {
-  if (!id.includes('node_modules')) {
-    return null;
-  }
-
-  // Ensure CSS from dependencies is grouped with vendor
-  if (id.endsWith('.css')) {
-    return 'vendor';
-  }
-
-  // Grouping logic based on path
-  for (const chunk in vendorChunkMap) {
-    if (
-      vendorChunkMap[chunk].some(
-        (pkg) =>
-          id.includes(`/node_modules/${pkg}/`) ||
-          new RegExp(`/\\.pnpm/${pkg}(@|/)`).test(id),
-      )
-    ) {
-      return chunk;
-    }
-  }
-
-  // Group React ecosystem
-  if (
-    id.includes('/node_modules/react/') ||
-    id.includes('/node_modules/react-dom/') ||
-    id.includes('/.pnpm/react@') ||
-    id.includes('/.pnpm/react-dom@')
-  ) {
-    return 'react';
-  }
-
-  return 'vendor';
-}
-
 function getStaticFilesToCopy(): ViteStaticCopyOptions {
   return {
     targets: [
@@ -156,10 +159,7 @@ function getStaticFilesToCopy(): ViteStaticCopyOptions {
         dest: 'assets/',
         rename: { stripBase: 1 },
       },
-      {
-        src: 'login.html',
-        dest: './',
-      },
+      // login.html is a Vite MPA entry (bundled), not a static copy.
     ],
   };
 }

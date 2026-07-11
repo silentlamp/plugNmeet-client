@@ -688,7 +688,7 @@ const Whiteboard = ({ onReadyExcalidrawAPI }: WhiteboardProps) => {
         isCollaborating={true}
         initialState={initialStateViewport}
         theme={theme}
-        name="plugNmeet whiteboard"
+        name="ZenLeader whiteboard"
         UIOptions={{
           canvasActions: {
             loadScene: false,

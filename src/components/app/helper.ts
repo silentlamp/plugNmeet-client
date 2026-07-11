@@ -50,11 +50,8 @@ export const verifyToken = once(
   ) => {
     const accessToken = getAccessToken();
     if (!accessToken) {
-      setLoading(false);
-      setError({
-        title: i18n.t('app.token-missing-title'),
-        text: i18n.t('app.token-missing-des'),
-      });
+      // ZenLeader: no meet token → React portal at /login (Fiber /login* route).
+      window.location.replace(`${window.location.origin}/login`);
       return;
     } else if (
       window.location.protocol === 'http:' &&
