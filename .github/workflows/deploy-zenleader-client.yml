@@ -78,21 +78,17 @@ jobs:
               # info file may be root-owned; best-effort
               echo "warn: could not write .zenleader-client-info" >&2
             }
-            # Deploy portal SPA (web root is world-writable / owned for deploy user)
+            # Deploy portal SPA — inline extract (CI user has no sudo; avoid host scripts/CRLF).
             if [ -f /tmp/portal-dist.tgz ]; then
-              PORTAL_SCRIPT=/home/dev/zen-leader/scripts/ci-deploy-portal.sh
-              if [ -f "$PORTAL_SCRIPT" ]; then
-                sed -i 's/\r$//' "$PORTAL_SCRIPT" || true
-                chmod +x "$PORTAL_SCRIPT" || true
-              fi
-              if [ -x "$PORTAL_SCRIPT" ]; then
-                bash "$PORTAL_SCRIPT" /tmp/portal-dist.tgz
-              else
-                PORTAL_ROOT=/var/www/portal.zenleader.xyz
-                mkdir -p "$PORTAL_ROOT"
-                rm -rf "${PORTAL_ROOT:?}/"*
-                tar -xzf /tmp/portal-dist.tgz -C "$PORTAL_ROOT"
-              fi
+              PORTAL_ROOT=/var/www/portal.zenleader.xyz
+              EXTRACT=$(mktemp -d)
+              tar -xzf /tmp/portal-dist.tgz -C "$EXTRACT"
+              mkdir -p "$PORTAL_ROOT"
+              # Replace contents without needing chown on the directory inode.
+              find "$PORTAL_ROOT" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+              cp -a "$EXTRACT"/. "$PORTAL_ROOT"/
+              rm -rf "$EXTRACT"
+              echo "portal_deployed=$PORTAL_ROOT"
             fi
             curl -fsS -o /dev/null -w "meet_home=%{http_code}\n" https://meet.zenleader.xyz/
             curl -fsSI https://meet.zenleader.xyz/login 2>/dev/null | tr -d '\r' | awk 'BEGIN{c=""} /^HTTP/{c=$2} tolower($1)=="location:"{print "meet_login=" c " location="$2; exit}'
