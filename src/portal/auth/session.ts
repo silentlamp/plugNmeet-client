@@ -10,7 +10,7 @@ export function getZenAccessToken(): string {
 }
 
 /**
- * Returns the stored refresh token for logout / refresh flows.
+ * Returns the stored refresh token for logout and automatic access-token refresh.
  */
 export function getZenRefreshToken(): string {
   return localStorage.getItem(STORAGE_REFRESH) || '';

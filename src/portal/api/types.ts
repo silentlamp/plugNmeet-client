@@ -29,7 +29,7 @@ export type EventAuthor = {
   avatarUrl?: string | null;
 };
 
-/** Event item from /api/v1/events/my-interests */
+/** Event item from /api/v1/events/my-interests or /my-created */
 export type EventResponse = {
   id: string;
   title?: string;

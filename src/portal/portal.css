@@ -803,6 +803,11 @@ body {
   color: #6b7785;
 }
 
+.zl-chip-draft {
+  background: rgba(180, 120, 40, 0.12);
+  color: #8a5a12;
+}
+
 .zl-row-body {
   display: flex;
   align-items: flex-start;

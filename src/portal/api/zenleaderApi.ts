@@ -1,6 +1,7 @@
 import {
   clearZenSession,
   getZenAccessToken,
+  getZenEmail,
   getZenRefreshToken,
   saveZenSession,
 } from '../auth/session';
@@ -103,15 +104,33 @@ type FetchOptions = {
   method?: string;
   body?: unknown;
   skipAuth?: boolean;
+  /** Internal: set after a successful token refresh to avoid retry loops. */
+  _retry?: boolean;
 };
 
+/** In-flight refresh shared across concurrent 401s (single-flight). */
+let refreshPromise: Promise<TokenResponse> | null = null;
+
 /**
- * Low-level JSON fetch against the ZenLeader API with optional Bearer auth.
+ * Returns true when the path is an auth endpoint that must not trigger refresh.
+ *
+ * @param path - API path beginning with `/api/...`
+ */
+function isAuthSessionPath(path: string): boolean {
+  return (
+    path.includes('/auth/token') ||
+    path.includes('/auth/refresh') ||
+    path.includes('/auth/logout')
+  );
+}
+
+/**
+ * Raw JSON fetch against the ZenLeader API (no 401 refresh handling).
  *
  * @param path - API path beginning with `/api/...`
  * @param options - method, body, and auth skip flag
  */
-async function apiFetch<T>(
+async function rawApiFetch<T>(
   path: string,
   options: FetchOptions = {},
 ): Promise<T> {
@@ -148,6 +167,85 @@ async function apiFetch<T>(
   }
 
   return (json?.data ?? json) as T;
+}
+
+/**
+ * Exchanges the stored refresh token for a new access/refresh pair.
+ *
+ * @throws ZenApiError when refresh token is missing or the refresh call fails
+ */
+async function refreshZenTokens(): Promise<TokenResponse> {
+  const refresh = getZenRefreshToken();
+  if (!refresh) {
+    throw new ZenApiError('No refresh token', 401);
+  }
+
+  const data = await rawApiFetch<TokenResponse>('/api/v1/auth/refresh', {
+    method: 'POST',
+    skipAuth: true,
+    body: { refreshToken: refresh },
+  });
+
+  if (!data?.accessToken) {
+    throw new ZenApiError('Token refresh failed', 401);
+  }
+
+  saveZenSession(
+    data.accessToken,
+    data.refreshToken || refresh,
+    getZenEmail() || undefined,
+  );
+  return data;
+}
+
+/**
+ * Single-flight refresh so concurrent 401s share one `/auth/refresh` call.
+ */
+async function refreshAccessTokenSingleFlight(): Promise<TokenResponse> {
+  if (!refreshPromise) {
+    refreshPromise = refreshZenTokens().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
+}
+
+/**
+ * JSON fetch against the ZenLeader API with optional Bearer auth.
+ * On 401, attempts one automatic access-token refresh then retries.
+ *
+ * @param path - API path beginning with `/api/...`
+ * @param options - method, body, and auth skip flag
+ */
+async function apiFetch<T>(
+  path: string,
+  options: FetchOptions = {},
+): Promise<T> {
+  try {
+    return await rawApiFetch<T>(path, options);
+  } catch (err) {
+    if (
+      !(err instanceof ZenApiError) ||
+      err.status !== 401 ||
+      options.skipAuth ||
+      options._retry ||
+      isAuthSessionPath(path)
+    ) {
+      throw err;
+    }
+
+    if (!getZenRefreshToken()) {
+      throw err;
+    }
+
+    try {
+      await refreshAccessTokenSingleFlight();
+      return await rawApiFetch<T>(path, { ...options, _retry: true });
+    } catch {
+      clearZenSession();
+      throw err;
+    }
+  }
 }
 
 /**
@@ -197,6 +295,14 @@ export async function logout(): Promise<void> {
  */
 export async function fetchMyInterests(): Promise<EventResponse[]> {
   const data = await apiFetch<EventResponse[]>('/api/v1/events/my-interests');
+  return Array.isArray(data) ? data : [];
+}
+
+/**
+ * Loads events created by the authenticated user (includes drafts).
+ */
+export async function fetchMyCreated(): Promise<EventResponse[]> {
+  const data = await apiFetch<EventResponse[]>('/api/v1/events/my-created');
   return Array.isArray(data) ? data : [];
 }
 

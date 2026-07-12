@@ -92,7 +92,13 @@ export default defineConfig({
       // Dev: serve portal SPA shell for learner routes (prod: portal.zenleader.xyz).
       name: 'zenleader-portal-spa-dev',
       configureServer(server) {
-        const portalPaths = ['/login', '/my-courses', '/events', '/join'];
+        const portalPaths = [
+          '/login',
+          '/my-courses',
+          '/events',
+          '/my-events',
+          '/join',
+        ];
         server.middlewares.use((req, _res, next) => {
           if (!req.url) {
             next();

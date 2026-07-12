@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import type { EventResponse } from '../api/types';
 import {
   fetchMeetingToken,
-  fetchMyInterests,
+  fetchMyCreated,
   logout,
   redirectToMeeting,
   ZenApiError,
@@ -13,11 +13,21 @@ import { EventCard } from '../components/EventCard';
 import { partitionEvents } from '../utils/eventHelpers';
 
 const POLL_MS = 20_000;
+const CREATED_HINT = 'Created by you';
 
 /**
- * Events hub: interested events partitioned into Live / Upcoming / Ended.
+ * Returns true when the event is still a draft (not published).
+ *
+ * @param event - event from my-created
  */
-export function EventsPage() {
+function isDraftEvent(event: EventResponse): boolean {
+  return String(event.status || '').toUpperCase() === 'DRAFT';
+}
+
+/**
+ * My Events hub: events the signed-in user created (drafts + published).
+ */
+export function MyEventsPage() {
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<EventResponse[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
@@ -30,7 +40,7 @@ export function EventsPage() {
         setLoadingEvents(true);
       }
       try {
-        const list = await fetchMyInterests();
+        const list = await fetchMyCreated();
         setEvents(list);
         setError(null);
       } catch (err) {
@@ -42,7 +52,7 @@ export function EventsPage() {
         if (!opts?.silent) {
           setEvents([]);
           setError(
-            err instanceof Error ? err.message : 'Unable to load events.',
+            err instanceof Error ? err.message : 'Unable to load your events.',
           );
         }
       } finally {
@@ -65,10 +75,18 @@ export function EventsPage() {
     return () => window.clearInterval(id);
   }, [loadEvents]);
 
-  const { live, upcoming, ended } = useMemo(
-    () => partitionEvents(events),
-    [events],
-  );
+  const { drafts, live, upcoming, ended } = useMemo(() => {
+    const draftList = events
+      .filter(isDraftEvent)
+      .sort(
+        (a, b) =>
+          Date.parse(b.startTime || '') - Date.parse(a.startTime || '') ||
+          String(b.id).localeCompare(String(a.id)),
+      );
+    const published = events.filter((event) => !isDraftEvent(event));
+    const buckets = partitionEvents(published);
+    return { drafts: draftList, ...buckets };
+  }, [events]);
 
   const joinRoom = async (roomCode: string) => {
     if (!roomCode) {
@@ -90,8 +108,8 @@ export function EventsPage() {
     <>
       <div className="zl-page-head">
         <div>
-          <h1>Saved events</h1>
-          <p>Events you saved — join when they go live</p>
+          <h1>My events</h1>
+          <p>Events you created — join when they go live</p>
         </div>
         <button
           type="button"
@@ -113,11 +131,11 @@ export function EventsPage() {
         <div className="zl-loading">Loading your events…</div>
       ) : (
         <>
-          <section id="live-now" className="zl-section">
+          <section id="my-live-now" className="zl-section">
             <div className="zl-section-head">
               <div>
                 <h2>Live now</h2>
-                <p>Sessions you can join right now</p>
+                <p>Your sessions that are live right now</p>
               </div>
               {live.length > 0 ? (
                 <span className="zl-badge-live">
@@ -128,7 +146,7 @@ export function EventsPage() {
             </div>
             {live.length === 0 ? (
               <div className="zl-empty">
-                No live sessions right now. Check Upcoming below.
+                None of your events are live right now.
               </div>
             ) : (
               <div className="zl-list">
@@ -137,6 +155,7 @@ export function EventsPage() {
                     key={event.id}
                     event={event}
                     variant="live"
+                    relationHint={CREATED_HINT}
                     joiningCode={joiningCode}
                     onJoin={(code) => void joinRoom(code)}
                   />
@@ -145,18 +164,18 @@ export function EventsPage() {
             )}
           </section>
 
-          <section id="upcoming" className="zl-section">
+          <section id="my-upcoming" className="zl-section">
             <div className="zl-section-head">
               <div>
                 <h2>Upcoming</h2>
-                <p>Saved events that have not started yet</p>
+                <p>Published events that have not started yet</p>
               </div>
               <span className="zl-count-chip">{upcoming.length}</span>
             </div>
             {upcoming.length === 0 ? (
               <div className="zl-empty">
-                No upcoming saved events. Mark events as interested in the
-                ZenLeader app to see them here.
+                No upcoming published events. Create events in the ZenLeader app
+                to see them here.
               </div>
             ) : (
               <div className="zl-list">
@@ -165,6 +184,7 @@ export function EventsPage() {
                     key={event.id}
                     event={event}
                     variant="upcoming"
+                    relationHint={CREATED_HINT}
                     joiningCode={joiningCode}
                     onJoin={(code) => void joinRoom(code)}
                   />
@@ -173,12 +193,38 @@ export function EventsPage() {
             )}
           </section>
 
-          <section id="ended" className="zl-section zl-section-muted">
+          <section id="my-drafts" className="zl-section">
+            <div className="zl-section-head">
+              <div>
+                <h2>Drafts</h2>
+                <p>Events you created but have not published yet</p>
+              </div>
+              <span className="zl-count-chip">{drafts.length}</span>
+            </div>
+            {drafts.length === 0 ? (
+              <div className="zl-empty">No draft events.</div>
+            ) : (
+              <div className="zl-list">
+                {drafts.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    variant="draft"
+                    relationHint={CREATED_HINT}
+                    joiningCode={joiningCode}
+                    onJoin={(code) => void joinRoom(code)}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section id="my-ended" className="zl-section zl-section-muted">
             <details>
               <summary className="zl-section-head zl-summary">
                 <div>
                   <h2>Ended</h2>
-                  <p>Past events you were interested in</p>
+                  <p>Past events you hosted</p>
                 </div>
                 <span className="zl-count-chip">{ended.length}</span>
               </summary>
@@ -191,6 +237,7 @@ export function EventsPage() {
                       key={event.id}
                       event={event}
                       variant="ended"
+                      relationHint={CREATED_HINT}
                       joiningCode={joiningCode}
                       onJoin={(code) => void joinRoom(code)}
                     />

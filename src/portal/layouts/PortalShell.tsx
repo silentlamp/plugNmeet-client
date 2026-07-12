@@ -119,7 +119,16 @@ export function PortalShell() {
             }
             onClick={closeSidebar}
           >
-            Events
+            Saved events
+          </NavLink>
+          <NavLink
+            to="/my-events"
+            className={({ isActive }) =>
+              `zl-nav-item${isActive ? ' zl-nav-active' : ''}`
+            }
+            onClick={closeSidebar}
+          >
+            My events
           </NavLink>
           <button
             type="button"

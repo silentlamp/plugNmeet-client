@@ -6,41 +6,50 @@ import {
   formatStartLabel,
 } from '../utils/eventHelpers';
 
-type EventCardVariant = 'live' | 'upcoming' | 'ended';
+type EventCardVariant = 'live' | 'upcoming' | 'ended' | 'draft';
 
 type EventCardProps = {
   event: EventResponse;
   variant: EventCardVariant;
   joiningCode: string | null;
   onJoin: (roomCode: string) => void;
+  /** Secondary hint under the author name (defaults by variant). */
+  relationHint?: string;
 };
 
 /**
  * Compact Dojo-style horizontal event row for the meet hub.
  *
- * @param event - interested event
- * @param variant - live | upcoming | ended
+ * @param event - event payload
+ * @param variant - live | upcoming | ended | draft
  * @param joiningCode - room code currently joining, if any
  * @param onJoin - join handler
+ * @param relationHint - optional author-line hint (saved vs created)
  */
 export function EventCard({
   event,
   variant,
   joiningCode,
   onJoin,
+  relationHint,
 }: EventCardProps) {
   const roomCode = extractRoomCode(event);
   const busy = joiningCode === roomCode && Boolean(roomCode);
   const thumb = event.thumbnailUrl || '/assets/imgs/logo-zenleader.png';
   const author = eventAuthorName(event);
   const canJoin = variant === 'live' && Boolean(roomCode);
+  const hint =
+    relationHint ||
+    (variant === 'draft' ? 'Created by you · draft' : 'Saved · interested');
 
   const timeLabel =
     variant === 'ended'
       ? `Ended · ${formatEventTime(event.endTime || event.startTime)}`
       : variant === 'live'
         ? `Live · until ${formatEventTime(event.endTime)}`
-        : formatStartLabel(event.startTime);
+        : variant === 'draft'
+          ? formatStartLabel(event.startTime) || 'Draft — not published yet'
+          : formatStartLabel(event.startTime);
 
   return (
     <article
@@ -65,7 +74,7 @@ export function EventCard({
             )}
             <div className="zl-row-author-text">
               <span className="zl-author-name">{author}</span>
-              <span className="zl-author-hint">Saved · interested</span>
+              <span className="zl-author-hint">{hint}</span>
             </div>
           </div>
 
@@ -80,6 +89,9 @@ export function EventCard({
           ) : null}
           {variant === 'ended' ? (
             <span className="zl-chip zl-chip-ended">Ended</span>
+          ) : null}
+          {variant === 'draft' ? (
+            <span className="zl-chip zl-chip-draft">Draft</span>
           ) : null}
         </div>
 

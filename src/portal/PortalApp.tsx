@@ -6,6 +6,7 @@ import { CourseRunDetailPage } from './pages/CourseRunDetailPage';
 import { EventsPage } from './pages/EventsPage';
 import { LoginPage } from './pages/LoginPage';
 import { MyCoursesPage } from './pages/MyCoursesPage';
+import { MyEventsPage } from './pages/MyEventsPage';
 
 /**
  * ZenLeader learner portal router (hosted on portal.zenleader.xyz).
@@ -30,6 +31,7 @@ export function PortalApp() {
               element={<CourseRunDetailPage />}
             />
             <Route path="/events" element={<EventsPage />} />
+            <Route path="/my-events" element={<MyEventsPage />} />
             <Route
               path="/join"
               element={<Navigate to="/my-courses" replace />}
