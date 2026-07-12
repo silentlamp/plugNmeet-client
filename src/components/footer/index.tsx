@@ -16,6 +16,7 @@ import RecordingIcon from './icons/recording';
 import PollsIcon from './icons/polls';
 import Translation from './icons/translation';
 import InsightsAiTextChatIcon from './icons/insightAiTextChat';
+import { ZL_MEET_FEATURES } from '../../helpers/zenleaderMeetFeatures';
 
 const Footer = () => {
   const { isAdmin, isRecorder, allowChat } = useMemo(() => {
@@ -44,10 +45,10 @@ const Footer = () => {
           <ScreenshareIcon />
           <WhiteboardIcon />
           <ReactionsIcon />
-          <SharedNotePadIcon />
+          {ZL_MEET_FEATURES.sharedNotepad && <SharedNotePadIcon />}
           <PollsIcon />
           <Translation />
-          <InsightsAiTextChatIcon />
+          {ZL_MEET_FEATURES.aiTools && <InsightsAiTextChatIcon />}
           <RecordingIcon />
           <div className="icon block md:hidden">
             <ParticipantIcon />

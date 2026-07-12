@@ -12,7 +12,11 @@ import {
   supportedTranslationLangs,
 } from './helpers/supportedLangs';
 import { LoadingIcon } from '../../assets/Icons/Loading';
+import { ZL_MEET_FEATURES } from '../../helpers/zenleaderMeetFeatures';
 
+/**
+ * Admin modal to configure speech transcription (and optional chat translation).
+ */
 const TranslationTranscriptionSettingModal = () => {
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
@@ -47,7 +51,10 @@ const TranslationTranscriptionSettingModal = () => {
           content: <TranscriptionSettings setErrorMsg={setErrorMsg} />,
         });
       }
-      if (insightsFeatures.chatTranslationFeatures?.isAllow) {
+      if (
+        ZL_MEET_FEATURES.translation &&
+        insightsFeatures.chatTranslationFeatures?.isAllow
+      ) {
         tabItems.push({
           id: 2,
           title: t('speech-services.chat-translation'),

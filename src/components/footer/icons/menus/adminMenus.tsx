@@ -25,7 +25,11 @@ import { PollsIconSVG } from '../../../../assets/Icons/PollsIconSVG';
 import { BreakoutRoomIconSVG } from '../../../../assets/Icons/BreakoutRoomIconSVG';
 import { RoomLockIconSVG } from '../../../../assets/Icons/RoomLockIconSVG';
 import { AiIconSVG } from '../../../../assets/Icons/AiIconSVG';
+import { ZL_MEET_FEATURES } from '../../../../helpers/zenleaderMeetFeatures';
 
+/**
+ * Admin-only items inside the footer overflow menu.
+ */
 const AdminMenus = () => {
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
@@ -75,7 +79,8 @@ const AdminMenus = () => {
 
   return (
     <>
-      {roomFeatures?.insightsFeatures?.isAllow &&
+      {ZL_MEET_FEATURES.aiTools &&
+        roomFeatures?.insightsFeatures?.isAllow &&
         roomFeatures?.insightsFeatures?.aiFeatures?.isAllow && (
           <FooterMenuItem
             onClick={openInsightsAISettingsModal}
@@ -83,7 +88,8 @@ const AdminMenus = () => {
             text={t('footer.menus.ai-settings')}
           />
         )}
-      {roomFeatures?.externalBroadcastingFeatures?.isAllow &&
+      {ZL_MEET_FEATURES.liveStream &&
+        roomFeatures?.externalBroadcastingFeatures?.isAllow &&
         roomFeatures?.externalBroadcastingFeatures?.isAllowRtmp && (
           <FooterMenuItem
             onClick={openRtmpModal}
@@ -141,18 +147,19 @@ const AdminMenus = () => {
           }
         />
       )}
-      {roomFeatures?.sharedNotePadFeatures?.isAllow && (
-        <FooterMenuItem
-          onClick={toggleSharedNotepad}
-          isActive={sharedNotepadStatus}
-          icon={<SharedNotepadIconSVG />}
-          text={
-            sharedNotepadStatus
-              ? t('footer.menus.disable-shared-notepad')
-              : t('footer.menus.enable-shared-notepad')
-          }
-        />
-      )}
+      {ZL_MEET_FEATURES.sharedNotepad &&
+        roomFeatures?.sharedNotePadFeatures?.isAllow && (
+          <FooterMenuItem
+            onClick={toggleSharedNotepad}
+            isActive={sharedNotepadStatus}
+            icon={<SharedNotepadIconSVG />}
+            text={
+              sharedNotepadStatus
+                ? t('footer.menus.disable-shared-notepad')
+                : t('footer.menus.enable-shared-notepad')
+            }
+          />
+        )}
       <div className="divider h-1 w-[110%] bg-Gray-50 dark:bg-Gray-700 -ml-3 my-0.5"></div>
       <FooterMenuItem
         onClick={muteAllUsers}

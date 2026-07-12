@@ -12,6 +12,7 @@ import sendAPIRequest from '../../../helpers/api/plugNmeetAPI';
 import { addUserNotification } from '../../../store/slices/roomSettingsSlice';
 import Modal from '../../../helpers/ui/modal';
 import SettingsSwitch from '../../../helpers/ui/settingsSwitch';
+import { ZL_MEET_FEATURES } from '../../../helpers/zenleaderMeetFeatures';
 
 const LockSettingsModal = () => {
   const dispatch = useAppDispatch();
@@ -101,11 +102,15 @@ const LockSettingsModal = () => {
       checked: roomLockSettings?.lockWhiteboard ?? false,
       service: 'whiteboard',
     },
-    {
-      label: t('footer.modal.lock-shared-notepad'),
-      checked: roomLockSettings?.lockSharedNotepad ?? false,
-      service: 'sharedNotepad',
-    },
+    ...(ZL_MEET_FEATURES.sharedNotepad
+      ? [
+          {
+            label: t('footer.modal.lock-shared-notepad'),
+            checked: roomLockSettings?.lockSharedNotepad ?? false,
+            service: 'sharedNotepad',
+          },
+        ]
+      : []),
     {
       label: t('footer.modal.lock-reactions'),
       checked: roomLockSettings?.lockReactions ?? false,

@@ -4,6 +4,7 @@ import { InsightsTranscriptionFeatures } from 'plugnmeet-protocol-js';
 
 import { getSubtitleLangs } from '../helpers/supportedLangs';
 import Dropdown, { ISelectOption } from '../../../helpers/ui/dropdown';
+import { ZL_MEET_FEATURES } from '../../../helpers/zenleaderMeetFeatures';
 
 interface ISubtitleLangSelectorProps {
   transcriptionFeatures: InsightsTranscriptionFeatures;
@@ -21,7 +22,9 @@ const SubtitleLangSelector = ({
   const dropdownOptions: ISelectOption[] = useMemo(() => {
     const langs = getSubtitleLangs(
       transcriptionFeatures.allowedSpokenLangs,
-      transcriptionFeatures.allowedTransLangs,
+      ZL_MEET_FEATURES.translation
+        ? transcriptionFeatures.allowedTransLangs
+        : [],
     );
     return langs.map((l) => ({
       value: l.code,

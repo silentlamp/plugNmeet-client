@@ -20,6 +20,7 @@ import {
 import { getMediaServerConnRoom } from '../../../helpers/livekit/utils';
 import { updateSelectedSubtitleLang } from '../../../store/slices/speechServicesSlice';
 import SettingsSwitch from '../../../helpers/ui/settingsSwitch';
+import { ZL_MEET_FEATURES } from '../../../helpers/zenleaderMeetFeatures';
 
 interface SpeechSettingsModalProps {
   transcriptionFeatures: InsightsTranscriptionFeatures;
@@ -145,16 +146,17 @@ const SpeechSettingsModal = ({
           setSelectedSubtitleLang={setSelectedSubtitleLang}
         />
         <SubtitleFontSizeSlider />
-        {!transcriptionFeatures.isEnabledSpeechSynthesis && (
-          <div className="bg-Gray-25 dark:bg-dark-primary border-y border-dotted border-Gray-100 dark:border-Gray-800 -mx-4 px-8 py-4">
-            <SettingsSwitch
-              label={t('speech-services.enable-speech-synthesis')}
-              enabled={enabledSpeechSynthesis}
-              onChange={setEnabledSpeechSynthesis}
-              customCss="shadow-Icon-box h-11 border border-Gray-100 dark:border-Gray-800 rounded-2xl px-4 bg-white dark:bg-dark-primary"
-            />
-          </div>
-        )}
+        {ZL_MEET_FEATURES.translation &&
+          !transcriptionFeatures.isEnabledSpeechSynthesis && (
+            <div className="bg-Gray-25 dark:bg-dark-primary border-y border-dotted border-Gray-100 dark:border-Gray-800 -mx-4 px-8 py-4">
+              <SettingsSwitch
+                label={t('speech-services.enable-speech-synthesis')}
+                enabled={enabledSpeechSynthesis}
+                onChange={setEnabledSpeechSynthesis}
+                customCss="shadow-Icon-box h-11 border border-Gray-100 dark:border-Gray-800 rounded-2xl px-4 bg-white dark:bg-dark-primary"
+              />
+            </div>
+          )}
       </div>
 
       {canShowSpeechSetting &&
