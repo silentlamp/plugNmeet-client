@@ -10,6 +10,8 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 export default defineConfig({
   root: join(__dirname, 'src'),
+  // Load `.env*` from repo root (not `src/`). Portal OAuth uses VITE_PORTAL_*.
+  envDir: __dirname,
   // Absolute asset URLs so portal deep links on portal.zenleader.xyz resolve /assets/*.
   base: '/',
   resolve: {

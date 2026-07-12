@@ -27,17 +27,24 @@ jobs:
           cache: pnpm
 
       - name: Install & build
-        # Portal OAuth from `.env.production` (VITE_PORTAL_*). Optional non-empty
-        # GitHub Variables override defaults. Never written into Meet config.js.
+        # Portal OAuth: Vite loads `.env.production` via envDir=repo root.
+        # Always export production defaults so CI never ships an empty client ID
+        # (Meet config.js is never touched).
         run: |
+          export VITE_PORTAL_GOOGLE_CLIENT_ID="${VITE_PORTAL_GOOGLE_CLIENT_ID:-236923025711-u2pujicahnr29s5mej8lat0djpemj4i5.apps.googleusercontent.com}"
+          export VITE_PORTAL_APPLE_CLIENT_ID="${VITE_PORTAL_APPLE_CLIENT_ID:-}"
           if [ -n "${{ vars.VITE_PORTAL_GOOGLE_CLIENT_ID }}" ]; then
             export VITE_PORTAL_GOOGLE_CLIENT_ID="${{ vars.VITE_PORTAL_GOOGLE_CLIENT_ID }}"
           fi
           if [ -n "${{ vars.VITE_PORTAL_APPLE_CLIENT_ID }}" ]; then
             export VITE_PORTAL_APPLE_CLIENT_ID="${{ vars.VITE_PORTAL_APPLE_CLIENT_ID }}"
           fi
+          echo "portal_oauth google=$([ -n "$VITE_PORTAL_GOOGLE_CLIENT_ID" ] && echo set || echo EMPTY) apple=$([ -n "$VITE_PORTAL_APPLE_CLIENT_ID" ] && echo set || echo empty)"
           pnpm install --frozen-lockfile
           pnpm run build
+          # Fail CI if Google ID was not baked into the portal login bundle
+          grep -q '236923025711\|Continue with Google' dist/assets/js/login-module.*.js
+          grep -q 'apps.googleusercontent.com' dist/assets/js/login-module.*.js
           tar -czf client-dist.tgz -C dist .
           bash scripts/package-portal-dist.sh
 
