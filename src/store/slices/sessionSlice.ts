@@ -110,7 +110,7 @@ const initialState: ISession = {
       },
       copyrightConf: {
         display: true,
-        text: 'Được phát triển bởi Blue Ocean Digital',
+        text: 'Developed by Blue Ocean Digital',
       },
     }),
   },

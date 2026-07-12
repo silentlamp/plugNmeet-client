@@ -8,10 +8,11 @@ import re
 
 p = Path('/opt/plugNmeet/config.yaml')
 text = p.read_text()
-new = 'Được phát triển bởi Blue Ocean Digital'
+new = 'Developed by Blue Ocean Digital'
 legacy = [
     'Powered by <a href="https://www.plugnmeet.org" target="_blank">plugNmeet</a>',
     'Powered by <a href="https://zenleader.xyz" target="_blank">ZenLeader</a>',
+    'Được phát triển bởi Blue Ocean Digital',
 ]
 
 replaced = False
@@ -19,9 +20,8 @@ for old in legacy:
     if old in text:
         text = text.replace(old, new)
         replaced = True
-        print(f'replaced legacy copyright ({old[:32]}...)')
+        print(f'replaced legacy copyright ({old[:40]}...)')
 
-# Normalize any copyright_conf.text value to Blue Ocean Digital
 text2, n = re.subn(
     r"(copyright_conf:[\s\S]*?\n\s*text:\s*)(['\"])([^'\"]*)(\2)",
     rf"\1'{new}'",
