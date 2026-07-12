@@ -16,6 +16,23 @@ export type TokenResponse = {
   refreshToken?: string;
 };
 
+/** GET /api/v1/users/me — minimal fields used by the portal. */
+export type UserMeResponse = {
+  id?: string;
+  email?: string;
+  displayName?: string;
+  avatarUrl?: string | null;
+};
+
+/** POST /api/v1/auth/apple body. */
+export type AppleAuthPayload = {
+  identityToken: string;
+  authorizationCode: string;
+  userIdentifier?: string;
+  givenName?: string;
+  familyName?: string;
+};
+
 /** GET /api/v1/meetings/token */
 export type MeetingTokenResponse = {
   token: string;

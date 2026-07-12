@@ -7,6 +7,7 @@ import {
 } from '../auth/session';
 import type {
   ApiResponse,
+  AppleAuthPayload,
   CourseResponse,
   CourseRunResponse,
   CourseSessionResponse,
@@ -14,6 +15,7 @@ import type {
   EventResponse,
   MeetingTokenResponse,
   TokenResponse,
+  UserMeResponse,
 } from './types';
 
 export class ZenApiError extends Error {
@@ -37,6 +39,8 @@ type PlugNmeetConfig = {
   serverUrl?: string;
   meetHomeUrl?: string;
   portalUrl?: string;
+  googleClientId?: string;
+  appleClientId?: string;
 };
 
 /**
@@ -100,6 +104,52 @@ export function getPortalUrl(): string {
   return 'https://portal.zenleader.xyz';
 }
 
+/**
+ * Returns the Google Web OAuth client ID from runtime config (empty if unset).
+ */
+export function getGoogleClientId(): string {
+  return String(getConfig().googleClientId ?? '').trim();
+}
+
+/**
+ * Returns the Apple Services ID from runtime config (empty if unset / button hidden).
+ */
+export function getAppleClientId(): string {
+  return String(getConfig().appleClientId ?? '').trim();
+}
+
+/**
+ * Loads the signed-in user profile (`GET /api/v1/users/me`).
+ */
+export async function fetchCurrentUser(): Promise<UserMeResponse> {
+  return apiFetch<UserMeResponse>('/api/v1/users/me');
+}
+
+/**
+ * Persists tokens and best-effort email after a successful auth exchange.
+ *
+ * @param data - token pair from password or social login
+ * @param fallbackEmail - email from the login form when known
+ */
+async function persistAuthSession(
+  data: TokenResponse,
+  fallbackEmail?: string,
+): Promise<TokenResponse> {
+  if (!data?.accessToken) {
+    throw new ZenApiError('Sign in failed', 401);
+  }
+  saveZenSession(data.accessToken, data.refreshToken, fallbackEmail);
+  try {
+    const me = await fetchCurrentUser();
+    if (me?.email) {
+      saveZenSession(data.accessToken, data.refreshToken, me.email);
+    }
+  } catch {
+    // profile fetch is best-effort; tokens already stored
+  }
+  return data;
+}
+
 type FetchOptions = {
   method?: string;
   body?: unknown;
@@ -120,7 +170,9 @@ function isAuthSessionPath(path: string): boolean {
   return (
     path.includes('/auth/token') ||
     path.includes('/auth/refresh') ||
-    path.includes('/auth/logout')
+    path.includes('/auth/logout') ||
+    path.includes('/auth/google') ||
+    path.includes('/auth/apple')
   );
 }
 
@@ -263,13 +315,37 @@ export async function loginWithPassword(
     skipAuth: true,
     body: { email, passwordHash: password },
   });
+  return persistAuthSession(data, email);
+}
 
-  if (!data?.accessToken) {
-    throw new ZenApiError('Sign in failed', 401);
-  }
+/**
+ * Signs in with a Google ID token from Google Identity Services.
+ *
+ * @param idToken - Google JWT credential
+ */
+export async function loginWithGoogle(idToken: string): Promise<TokenResponse> {
+  const data = await apiFetch<TokenResponse>('/api/v1/auth/google', {
+    method: 'POST',
+    skipAuth: true,
+    body: { idToken },
+  });
+  return persistAuthSession(data);
+}
 
-  saveZenSession(data.accessToken, data.refreshToken, email);
-  return data;
+/**
+ * Signs in with Apple identity token + authorization code from Apple JS SDK.
+ *
+ * @param payload - Apple auth fields matching {@code AppleAuthRequest}
+ */
+export async function loginWithApple(
+  payload: AppleAuthPayload,
+): Promise<TokenResponse> {
+  const data = await apiFetch<TokenResponse>('/api/v1/auth/apple', {
+    method: 'POST',
+    skipAuth: true,
+    body: payload,
+  });
+  return persistAuthSession(data);
 }
 
 /**
