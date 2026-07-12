@@ -135,18 +135,19 @@ const AdminMenus = () => {
           }
         />
       )}
-      {roomFeatures?.displayExternalLinkFeatures?.isAllow && (
-        <FooterMenuItem
-          onClick={toggleDisplayExternalLinkModal}
-          isActive={isActiveDisplayExternalLink}
-          icon={<ExternalPlayerIconSVG />}
-          text={
-            isActiveDisplayExternalLink
-              ? t('footer.menus.stop-display-external-link')
-              : t('footer.menus.start-display-external-link')
-          }
-        />
-      )}
+      {ZL_MEET_FEATURES.displayExternalLink &&
+        roomFeatures?.displayExternalLinkFeatures?.isAllow && (
+          <FooterMenuItem
+            onClick={toggleDisplayExternalLinkModal}
+            isActive={isActiveDisplayExternalLink}
+            icon={<ExternalPlayerIconSVG />}
+            text={
+              isActiveDisplayExternalLink
+                ? t('footer.menus.stop-display-external-link')
+                : t('footer.menus.start-display-external-link')
+            }
+          />
+        )}
       {ZL_MEET_FEATURES.sharedNotepad &&
         roomFeatures?.sharedNotePadFeatures?.isAllow && (
           <FooterMenuItem

@@ -13,4 +13,6 @@ export const ZL_MEET_FEATURES = {
   sharedNotepad: false,
   /** Live translation UI (transcription remains available). */
   translation: false,
+  /** Share / display external link admin menu. */
+  displayExternalLink: false,
 } as const;
