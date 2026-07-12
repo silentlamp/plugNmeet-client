@@ -17,7 +17,6 @@ import TransLangsSelector from './transLangsSelector';
 import DefaultSubtitleLangSelector from './defaultSubtitleLangSelector';
 import SettingsSwitch from '../../../helpers/ui/settingsSwitch';
 import { speechLangsMap } from '../helpers/supportedLangs';
-import { ZL_MEET_FEATURES } from '../../../helpers/zenleaderMeetFeatures';
 
 interface TranscriptionSettingsProps {
   setErrorMsg: React.Dispatch<React.SetStateAction<string | undefined>>;
@@ -55,27 +54,21 @@ const TranscriptionSettings = ({ setErrorMsg }: TranscriptionSettingsProps) => {
   );
 
   const [enableTranslation, setEnableTranslation] = useState<boolean>(
-    ZL_MEET_FEATURES.translation &&
-      !!transcriptionFeatures?.isEnabledTranslation,
+    !!transcriptionFeatures?.isEnabledTranslation,
   );
   const [selectedTransLangs, setSelectedTransLangs] = useState<string[]>(
-    ZL_MEET_FEATURES.translation
-      ? (transcriptionFeatures?.allowedTransLangs ?? [])
-      : [],
+    transcriptionFeatures?.allowedTransLangs ?? [],
   );
   const [selectedDefaultSubtitleLang, setSelectedDefaultSubtitleLang] =
     useState<string>(transcriptionFeatures?.defaultSubtitleLang ?? '');
 
   const enableOrUpdateService = useCallback(async () => {
-    const translationEnabled =
-      ZL_MEET_FEATURES.translation && enableTranslation;
     const validation = validateSettings({
       selectedSpeechUsers,
       selectedSpeechLangs,
-      enableTranslation: translationEnabled,
-      selectedTransLangs: translationEnabled ? selectedTransLangs : [],
-      enabledTransSynthesis:
-        ZL_MEET_FEATURES.translation && enabledTransSynthesis,
+      enableTranslation,
+      selectedTransLangs: enableTranslation ? selectedTransLangs : [],
+      enabledTransSynthesis,
     });
     if (!validation.isValid) {
       setErrorMsg(t(validation.message!));
@@ -87,11 +80,10 @@ const TranscriptionSettings = ({ setErrorMsg }: TranscriptionSettingsProps) => {
       isEnabled: true,
       allowedSpokenLangs: selectedSpeechLangs,
       allowedSpeechUsers: selectedSpeechUsers,
-      isEnabledTranslation: translationEnabled,
-      allowedTransLangs: translationEnabled ? selectedTransLangs : [],
+      isEnabledTranslation: enableTranslation,
+      allowedTransLangs: enableTranslation ? selectedTransLangs : [],
       defaultSubtitleLang: selectedDefaultSubtitleLang,
-      isEnabledSpeechSynthesis:
-        ZL_MEET_FEATURES.translation && enabledTransSynthesis,
+      isEnabledSpeechSynthesis: enabledTransSynthesis,
     });
 
     if (selectedDefaultSubtitleLang === '') {
@@ -179,15 +171,13 @@ const TranscriptionSettings = ({ setErrorMsg }: TranscriptionSettingsProps) => {
               isServiceRunning={!!transcriptionFeatures?.isEnabled}
               label={t('speech-services.default-subtitle-lang-label')}
               selectedSpeechLangs={selectedSpeechLangs}
-              selectedTransLangs={
-                ZL_MEET_FEATURES.translation ? selectedTransLangs : []
-              }
+              selectedTransLangs={selectedTransLangs}
               selectedDefaultSubtitleLang={selectedDefaultSubtitleLang}
               setSelectedDefaultSubtitleLang={setSelectedDefaultSubtitleLang}
             />
           </div>
         )}
-        {ZL_MEET_FEATURES.translation && enabledTranscription && (
+        {enabledTranscription && (
           <>
             <div className="bg-Gray-25 dark:bg-dark-primary border-y border-dotted border-Gray-100 dark:border-Gray-800 -mx-4 px-4 py-4">
               <SettingsSwitch

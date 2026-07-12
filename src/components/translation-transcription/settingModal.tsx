@@ -52,7 +52,7 @@ const TranslationTranscriptionSettingModal = () => {
         });
       }
       if (
-        ZL_MEET_FEATURES.translation &&
+        ZL_MEET_FEATURES.chatTranslation &&
         insightsFeatures.chatTranslationFeatures?.isAllow
       ) {
         tabItems.push({
