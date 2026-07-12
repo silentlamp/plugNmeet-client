@@ -1,10 +1,12 @@
 @import 'tailwindcss';
 
 :root {
-  /* AppColors (zen-leader/lib/theme/app_colors.dart) */
-  --zl-navy: #1f3e72; /* primaryBlue */
+  /* AppColors — primary CTA is green, navy remains text/identity */
+  --zl-primary: #87c744; /* primaryGreen */
+  --zl-primary-deep: #6fa832;
+  --zl-navy: #1f3e72; /* primaryBlue — text / chrome */
   --zl-navy-deep: #142236; /* darkHeroStart */
-  --zl-green: #87c744; /* primaryGreen / success */
+  --zl-green: #87c744; /* alias of primary */
   --zl-teal: #02a190; /* teal — secondary chrome */
   --zl-surface: #f8f9fa; /* surfaceLight */
   --zl-card: #ffffff;
@@ -13,7 +15,7 @@
   --zl-danger: #ca3120; /* primaryRed */
   --zl-sidebar: #142236; /* darkHeroStart */
   --zl-sidebar-text: #d7e0ef;
-  --zl-shadow: 0 10px 30px rgba(31, 62, 114, 0.08);
+  --zl-shadow: 0 10px 30px rgba(135, 199, 68, 0.12);
   --zl-sidebar-w: 17.5rem;
 }
 
@@ -134,8 +136,8 @@ body {
 
 .zl-field input:focus,
 .zl-sidebar-join input:focus {
-  border-color: var(--zl-navy);
-  box-shadow: 0 0 0 3px rgba(31, 62, 114, 0.15);
+  border-color: var(--zl-primary);
+  box-shadow: 0 0 0 3px rgba(135, 199, 68, 0.28);
 }
 
 .zl-btn {
@@ -164,16 +166,17 @@ body {
 
 .zl-btn-primary {
   width: 100%;
-  background: var(--zl-navy);
-  color: #fff;
+  background: var(--zl-primary);
+  color: var(--zl-navy-deep);
 }
 
 .zl-btn-primary:hover:not(:disabled) {
-  background: var(--zl-navy-deep);
+  background: var(--zl-primary-deep);
+  color: #fff;
 }
 
 .zl-btn-accent {
-  background: var(--zl-green);
+  background: var(--zl-primary);
   color: var(--zl-navy-deep);
 }
 
@@ -430,7 +433,7 @@ body {
 .zl-progress-bar {
   height: 6px;
   border-radius: 999px;
-  background: var(--zl-green);
+  background: var(--zl-primary);
   min-width: 0;
   flex: 1;
   max-width: 140px;
@@ -794,8 +797,8 @@ body {
 }
 
 .zl-chip-upcoming {
-  background: rgba(31, 62, 114, 0.1);
-  color: var(--zl-navy);
+  background: rgba(135, 199, 68, 0.18);
+  color: var(--zl-navy-deep);
 }
 
 .zl-chip-ended {

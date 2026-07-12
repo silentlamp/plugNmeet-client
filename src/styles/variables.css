@@ -14,24 +14,24 @@
   --shadow-virtual-item: 0px 24px 9px 0px rgba(12, 19, 26, 0.01);
   --shadow-dropdown-menu: 0px 12px 16px -4px rgba(0, 43, 64, 0.08);
   --shadow-input: 0px 1px 2px 0px rgba(0, 43, 64, 0.05);
-  --shadow-input-focus: 0px 0px 0px 4px rgba(31, 62, 114, 0.25);
+  --shadow-input-focus: 0px 0px 0px 4px rgba(135, 199, 68, 0.25);
   --shadow-video-name: 0px 1px 4px 0px rgba(0, 0, 0, 0.25);
 
   /*
-   * Zen Leader Mobile AppColors equivalents
-   * Source: zen-leader/lib/theme/app_colors.dart
-   * Semantic: primary CTA → primaryBlue; secondary chrome → teal;
-   * success/join → primaryGreen; danger → primaryRed.
+   * Zen Leader theme for Meet UI
+   * Primary CTA / brand accent → primaryGreen (#87C744)
+   * Secondary / identity chrome → primaryBlue navy
+   * Danger → primaryRed
    */
-  --color-primary-color: #1f3e72; /* primaryBlue */
-  --color-secondary-color: #02a190; /* teal (NOT success green) */
+  --color-primary-color: #87c744; /* primaryGreen — primary CTA */
+  --color-secondary-color: #1f3e72; /* primaryBlue — secondary brand */
   --color-brand-red: #ca3120; /* primaryRed */
   --color-dark-primary: #101114; /* darkBackground */
   --color-dark-secondary: #1e1e1e; /* darkSurface */
   --color-dark-secondary2: #1a3550; /* darkHeroEnd */
   --color-dark-secondary3: #141a24; /* darkDialog */
   --color-dark-text: #8fb1ff; /* linkBlueDark */
-  --color-Blue: #1f3e72; /* primaryBlue — CTA / bg-Blue */
+  --color-Blue: #87c744; /* primaryGreen — CTA / bg-Blue */
   --color-Dark-blue: #1a5467; /* deepTeal */
 
   --color-Gray-25: #fafafa;
@@ -57,10 +57,10 @@
   --color-Green-100: rgba(240, 249, 232, 1);
   --color-Green-700: #87c744; /* primaryGreen / success / accent */
 
-  --color-Blue2-50: #eef2f8;
-  --color-Blue2-500: #1f3e72; /* primaryBlue — toggles / primary actions */
-  --color-Blue2-600: #142236; /* darkHeroStart */
-  --color-Blue2-700: #1a5467; /* deepTeal */
+  --color-Blue2-50: #f0f9e8; /* light green wash */
+  --color-Blue2-500: #87c744; /* primaryGreen — toggles / primary actions */
+  --color-Blue2-600: #6fa832; /* primaryGreen darker */
+  --color-Blue2-700: #1f3e72; /* primaryBlue */
   --color-Blue2-800: #142236; /* darkHeroStart */
 
   --radius-tlbl-d: 0 0 20px 20px;
