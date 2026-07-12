@@ -110,7 +110,7 @@ const initialState: ISession = {
       },
       copyrightConf: {
         display: true,
-        text: 'Powered by <a href="https://zenleader.xyz" target="_blank">ZenLeader</a>',
+        text: 'Được phát triển bởi Blue Ocean Digital',
       },
     }),
   },

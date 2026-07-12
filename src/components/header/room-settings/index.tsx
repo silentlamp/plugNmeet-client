@@ -10,6 +10,10 @@ import ApplicationSettings from './application';
 import DataSavings from './dataSavings';
 import Ingress from './ingress';
 import SipDialIn from './sipDialIn';
+import {
+  ZL_MEET_CREDIT_TEXT,
+  ZL_MEET_SHOW_VERSION_FOOTER,
+} from '../../../helpers/branding';
 
 declare const PNM_VERSION: string;
 
@@ -65,25 +69,34 @@ const RoomSettings = () => {
     return null;
   }
 
+  /**
+   * Renders the room-settings footer credit line.
+   * Default ZenLeader copy is Blue Ocean Digital; version line is opt-in via flag.
+   */
   const renderModalFooter = () => {
-    let text = '';
-    if (
-      copyright_conf &&
-      copyright_conf.display &&
-      copyright_conf.text !== ''
-    ) {
-      text = sanitizeHtml(copyright_conf.text, {
-        allowedTags: ['b', 'i', 'em', 'strong', 'a'],
-        allowedAttributes: {
-          a: ['href', 'target'],
-        },
-      }).concat('&nbsp;');
+    let text = ZL_MEET_CREDIT_TEXT;
+
+    if (ZL_MEET_SHOW_VERSION_FOOTER) {
+      let legacy = '';
+      if (
+        copyright_conf &&
+        copyright_conf.display &&
+        copyright_conf.text !== ''
+      ) {
+        legacy = sanitizeHtml(copyright_conf.text, {
+          allowedTags: ['b', 'i', 'em', 'strong', 'a'],
+          allowedAttributes: {
+            a: ['href', 'target'],
+          },
+        }).concat('&nbsp;');
+      }
+      legacy += t('plugnmeet-server-client-version', {
+        server: serverVersion,
+        client: PNM_VERSION,
+      });
+      text = legacy;
     }
 
-    text += t('plugnmeet-server-client-version', {
-      server: serverVersion,
-      client: PNM_VERSION,
-    });
     return (
       <div
         className="absolute inset-x-0 -bottom-4 text-center text-Gray-950 dark:text-white text-xs"

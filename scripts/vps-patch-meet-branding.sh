@@ -4,25 +4,44 @@ CFG=/opt/plugNmeet/config.yaml
 sudo cp "$CFG" "$CFG.bak.brand.$(date +%Y%m%d%H%M%S)"
 sudo python3 <<'PY'
 from pathlib import Path
+import re
+
 p = Path('/opt/plugNmeet/config.yaml')
 text = p.read_text()
-old = 'Powered by <a href="https://www.plugnmeet.org" target="_blank">plugNmeet</a>'
-new = 'Powered by <a href="https://zenleader.xyz" target="_blank">ZenLeader</a>'
-if old not in text:
-    if 'zenleader.xyz' in text and 'copyright_conf' in text:
-        print('copyright already ZenLeader')
-    else:
-        raise SystemExit('copyright pattern not found')
-else:
-    text = text.replace(old, new)
-    print('replaced copyright text')
+new = 'Được phát triển bởi Blue Ocean Digital'
+legacy = [
+    'Powered by <a href="https://www.plugnmeet.org" target="_blank">plugNmeet</a>',
+    'Powered by <a href="https://zenleader.xyz" target="_blank">ZenLeader</a>',
+]
 
-# Ensure display: true under copyright_conf
+replaced = False
+for old in legacy:
+    if old in text:
+        text = text.replace(old, new)
+        replaced = True
+        print(f'replaced legacy copyright ({old[:32]}...)')
+
+# Normalize any copyright_conf.text value to Blue Ocean Digital
+text2, n = re.subn(
+    r"(copyright_conf:[\s\S]*?\n\s*text:\s*)(['\"])([^'\"]*)(\2)",
+    rf"\1'{new}'",
+    text,
+    count=1,
+)
+if n:
+    text = text2
+    replaced = True
+    print('normalized copyright_conf.text')
+
+if new not in text:
+    raise SystemExit('copyright_conf.text update failed')
+if not replaced:
+    print('copyright already Blue Ocean Digital')
+
 idx = text.find('copyright_conf:')
 if idx >= 0:
-    # look at next ~400 chars for display
-    snippet = text[idx:idx+500]
-    if 'display:' not in snippet.split('room_')[0] and 'display:' not in snippet.split('\nroom')[0]:
+    snippet = text[idx:idx + 500]
+    if 'display:' not in snippet:
         text = text.replace('copyright_conf:\n', 'copyright_conf:\n    display: true\n', 1)
         print('inserted display: true')
 
