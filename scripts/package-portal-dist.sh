@@ -2,6 +2,11 @@
 # Build portal-only artifact from plugNmeet-client dist (MPA login entry).
 # Usage: from plugNmeet-client after `pnpm build`
 #   bash scripts/package-portal-dist.sh
+#
+# Portal Google/Apple Sign-In IDs come from Vite `.env` / `.env.production`
+# (VITE_PORTAL_GOOGLE_CLIENT_ID, VITE_PORTAL_APPLE_CLIENT_ID) at build time —
+# already baked into the login bundle. This script only packages URLs into
+# portal config.js and must never write OAuth into Meet config.
 
 set -euo pipefail
 
@@ -26,7 +31,7 @@ if [[ -d "$DIST/assets" ]]; then
   cp -a "$DIST/assets/." "$OUT/assets/"
 fi
 
-# Production config for portal subdomain
+# Production config for portal subdomain (URLs only — no OAuth)
 if [[ -f "$OUT/assets/config_sample.js" ]]; then
   cp "$OUT/assets/config_sample.js" "$OUT/assets/config.js"
   # portable sed
@@ -42,6 +47,9 @@ if [[ -f "$OUT/assets/config_sample.js" ]]; then
     sed -i '' "s|apiBaseUrl:.*|apiBaseUrl: 'https://api.zenleader.xyz',|" "$OUT/assets/config.js"
   fi
 fi
+
+# Drop any leftover portal-env artifacts from older builds (legacy removed)
+rm -f "$OUT/assets/portal-env.js" "$OUT/assets/portal-env.sample.js"
 
 rm -f "$TGZ"
 tar -czf "$TGZ" -C "$OUT" .

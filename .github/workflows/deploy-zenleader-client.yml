@@ -27,7 +27,15 @@ jobs:
           cache: pnpm
 
       - name: Install & build
+        # Portal OAuth from `.env.production` (VITE_PORTAL_*). Optional non-empty
+        # GitHub Variables override defaults. Never written into Meet config.js.
         run: |
+          if [ -n "${{ vars.VITE_PORTAL_GOOGLE_CLIENT_ID }}" ]; then
+            export VITE_PORTAL_GOOGLE_CLIENT_ID="${{ vars.VITE_PORTAL_GOOGLE_CLIENT_ID }}"
+          fi
+          if [ -n "${{ vars.VITE_PORTAL_APPLE_CLIENT_ID }}" ]; then
+            export VITE_PORTAL_APPLE_CLIENT_ID="${{ vars.VITE_PORTAL_APPLE_CLIENT_ID }}"
+          fi
           pnpm install --frozen-lockfile
           pnpm run build
           tar -czf client-dist.tgz -C dist .
@@ -69,6 +77,8 @@ jobs:
               sed -i "s|serverUrl:.*|serverUrl: 'https://meet.zenleader.xyz',|" "$DEST/assets/config.js"
               sed -i "s|portalUrl:.*|portalUrl: 'https://portal.zenleader.xyz',|" "$DEST/assets/config.js"
             fi
+            # Keep Meet dist free of portal-only OAuth env artifacts
+            rm -f "$DEST/assets/portal-env.js" "$DEST/assets/portal-env.sample.js"
             {
               echo "client_commit=${{ github.sha }}"
               echo "client_remote=silentlamp/plugNmeet-client"

@@ -39,12 +39,10 @@ type PlugNmeetConfig = {
   serverUrl?: string;
   meetHomeUrl?: string;
   portalUrl?: string;
-  googleClientId?: string;
-  appleClientId?: string;
 };
 
 /**
- * Reads `window.plugNmeetConfig` safely.
+ * Reads `window.plugNmeetConfig` safely (shared URLs only — not OAuth).
  */
 function getConfig(): PlugNmeetConfig {
   return (
@@ -105,17 +103,19 @@ export function getPortalUrl(): string {
 }
 
 /**
- * Returns the Google Web OAuth client ID from runtime config (empty if unset).
+ * Returns the Google Web OAuth client ID from Vite env (empty if unset).
+ * Source: `.env` / `.env.production` → `VITE_PORTAL_GOOGLE_CLIENT_ID`.
  */
 export function getGoogleClientId(): string {
-  return String(getConfig().googleClientId ?? '').trim();
+  return String(import.meta.env.VITE_PORTAL_GOOGLE_CLIENT_ID ?? '').trim();
 }
 
 /**
- * Returns the Apple Services ID from runtime config (empty if unset / button hidden).
+ * Returns the Apple Services ID from Vite env (empty if unset / button hidden).
+ * Source: `.env` / `.env.production` → `VITE_PORTAL_APPLE_CLIENT_ID`.
  */
 export function getAppleClientId(): string {
-  return String(getConfig().appleClientId ?? '').trim();
+  return String(import.meta.env.VITE_PORTAL_APPLE_CLIENT_ID ?? '').trim();
 }
 
 /**

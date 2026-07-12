@@ -13,15 +13,6 @@ window.plugNmeetConfig = {
   // ZenLeader Java API (auth, enrollments, events, meeting token).
   apiBaseUrl: 'https://api.zenleader.xyz',
 
-  // Portal Sign in with Google (Web OAuth Client ID — must be allowed by GOOGLE_CLIENT_ID on API).
-  // Mobile uses the same server/web client ID for backend verification.
-  googleClientId:
-    '236923025711-u2pujicahnr29s5mej8lat0djpemj4i5.apps.googleusercontent.com',
-
-  // Portal Sign in with Apple (Services ID). Leave empty to hide the Apple button until configured.
-  // Must also be listed in APPLE_CLIENT_ID on the Java API (comma-separated with native bundle ID).
-  appleClientId: '',
-
   // This is helpful for external plugin development where images or other files are located
   // in another place.
   // staticAssetsPath: '',

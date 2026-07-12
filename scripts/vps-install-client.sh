@@ -22,6 +22,8 @@ sudo tar -xzf "$SRC" -C "$DEST"
 sudo rm -f "$DEST/login.html"
 sudo rm -f "$DEST"/assets/js/login-module.*.js
 sudo rm -f "$DEST"/assets/css/login.*.css
+# Portal-only OAuth env must never live under Meet dist
+sudo rm -f "$DEST/assets/portal-env.js" "$DEST/assets/portal-env.sample.js"
 
 if [[ -f "$DEST/assets/config_sample.js" ]]; then
   sudo cp "$DEST/assets/config_sample.js" "$DEST/assets/config.js"
