@@ -106,6 +106,7 @@
     "room-audio-volume": "Âm thanh cuộc họp",
     "room-screen-share-audio-volume": "Chia sẻ màn hình âm thanh",
     "menus": {
+      "share": "Chia sẻ",
       "settings": "Cài đặt",
       "keyboard-shortcuts": "Phím tắt",
       "logout": "Rời khỏi cuộc họp",
@@ -115,6 +116,13 @@
         "logout": "Bạn sắp rời khỏi cuộc họp.",
         "end": "Bạn sắp kết thúc cuộc họp cho tất cả mọi người."
       }
+    },
+    "share-meeting": {
+      "title": "Chia sẻ cuộc họp",
+      "description": "Người nhận link cần đăng nhập ZenLeader trước khi vào phòng.",
+      "room-code": "Mã phòng",
+      "copy": "Sao chép",
+      "copied": "Đã sao chép"
     },
     "room-settings": {
       "title": "Cài đặt",

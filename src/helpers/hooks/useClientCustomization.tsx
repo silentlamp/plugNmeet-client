@@ -6,6 +6,7 @@ import {
   updateMaxNumDisplayWebcams,
 } from '../../store/slices/roomSettingsSlice';
 import { useAppDispatch } from '../../store';
+import { isBlockedBrandingUrl } from '../branding';
 import { getConfigValue } from '../utils';
 import { IMaxNumDisplayWebcams } from '../../store/slices/interfaces/roomSettings';
 
@@ -122,8 +123,11 @@ const useClientCustomization = () => {
       }
     }
 
-    // first set the logo
-    if (designCustomParams.custom_logo) {
+    // first set the logo (never allow upstream PlugNMeet branding URLs)
+    if (
+      designCustomParams.custom_logo &&
+      !isBlockedBrandingUrl(designCustomParams.custom_logo)
+    ) {
       // from design params let's assume logo will be only light to reduce complexity
       (window as any).plugNmeetConfig.customLogo = {
         main_logo_light: designCustomParams.custom_logo,

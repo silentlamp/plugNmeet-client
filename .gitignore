@@ -3,7 +3,13 @@ log
 .DS_Store
 npm-debug.log*
 src/assets/config.js
+.env
+.env.local
+.env.*.local
 .idea/
 dist
+portal-dist
+portal-dist.tgz
+client-dist.tgz
 node_modules/
 yarn.lock

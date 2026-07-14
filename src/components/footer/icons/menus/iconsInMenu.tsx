@@ -15,6 +15,7 @@ import { SharedNotepadIconSVG } from '../../../../assets/Icons/SharedNotepadIcon
 import { PollsIconSVG } from '../../../../assets/Icons/PollsIconSVG';
 import { SpeechIconSVG } from '../../../../assets/Icons/SpeechIconSVG';
 import { AiIconSVG } from '../../../../assets/Icons/AiIconSVG';
+import { ZL_MEET_FEATURES } from '../../../../helpers/zenleaderMeetFeatures';
 
 const IconsInMenu = () => {
   const { t } = useTranslation();
@@ -98,18 +99,19 @@ const IconsInMenu = () => {
           }
         />
       )}
-      {roomFeatures?.sharedNotePadFeatures?.isActive && (
-        <FooterMenuItem
-          onClick={toggleSharedNotePad}
-          isActive={isActiveSharedNotePad}
-          icon={<SharedNotepadIconSVG />}
-          text={
-            isActiveSharedNotePad
-              ? t('footer.icons.hide-shared-notepad')
-              : t('footer.icons.show-shared-notepad')
-          }
-        />
-      )}
+      {ZL_MEET_FEATURES.sharedNotepad &&
+        roomFeatures?.sharedNotePadFeatures?.isActive && (
+          <FooterMenuItem
+            onClick={toggleSharedNotePad}
+            isActive={isActiveSharedNotePad}
+            icon={<SharedNotepadIconSVG />}
+            text={
+              isActiveSharedNotePad
+                ? t('footer.icons.hide-shared-notepad')
+                : t('footer.icons.show-shared-notepad')
+            }
+          />
+        )}
       {isActivePoll && (
         <FooterMenuItem
           onClick={togglePollsPanel}
@@ -134,7 +136,7 @@ const IconsInMenu = () => {
           }
         />
       )}
-      {isEnabledAiTextChat && (
+      {ZL_MEET_FEATURES.aiTools && isEnabledAiTextChat && (
         <FooterMenuItem
           onClick={toggleAiTextChatPanel}
           isActive={isActiveAiTextChat}

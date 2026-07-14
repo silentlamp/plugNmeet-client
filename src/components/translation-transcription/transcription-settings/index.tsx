@@ -67,7 +67,7 @@ const TranscriptionSettings = ({ setErrorMsg }: TranscriptionSettingsProps) => {
       selectedSpeechUsers,
       selectedSpeechLangs,
       enableTranslation,
-      selectedTransLangs,
+      selectedTransLangs: enableTranslation ? selectedTransLangs : [],
       enabledTransSynthesis,
     });
     if (!validation.isValid) {
@@ -81,7 +81,7 @@ const TranscriptionSettings = ({ setErrorMsg }: TranscriptionSettingsProps) => {
       allowedSpokenLangs: selectedSpeechLangs,
       allowedSpeechUsers: selectedSpeechUsers,
       isEnabledTranslation: enableTranslation,
-      allowedTransLangs: selectedTransLangs,
+      allowedTransLangs: enableTranslation ? selectedTransLangs : [],
       defaultSubtitleLang: selectedDefaultSubtitleLang,
       isEnabledSpeechSynthesis: enabledTransSynthesis,
     });

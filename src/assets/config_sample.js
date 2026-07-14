@@ -1,7 +1,17 @@
 // We'll define a single configuration object.
 window.plugNmeetConfig = {
-  // The URL of your plugNmeet server.
+  // PlugNMeet / meet signaling origin (meeting SPA on meet.zenleader.xyz).
   serverUrl: 'http://localhost:8080',
+
+  // Learner portal origin. Meeting SPA redirects here when there is no access_token.
+  // Production: https://portal.zenleader.xyz
+  portalUrl: 'https://portal.zenleader.xyz',
+
+  // --- Keys used only by the learner portal package (portal.zenleader.xyz) ---
+  // Meeting SPA home when joining from portal (must be meet domain, not portal).
+  meetHomeUrl: 'https://meet.zenleader.xyz/',
+  // ZenLeader Java API (auth, enrollments, events, meeting token).
+  apiBaseUrl: 'https://api.zenleader.xyz',
 
   // This is helpful for external plugin development where images or other files are located
   // in another place.

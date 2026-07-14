@@ -10,7 +10,12 @@ import {
 import sendAPIRequest from '../../helpers/api/plugNmeetAPI';
 import { IErrorPageProps } from '../extra-pages/Error';
 import i18n from '../../helpers/i18n';
-import { getAccessToken } from '../../helpers/utils';
+import {
+  getAccessToken,
+  getPortalBaseUrl,
+  getPortalJoinUrl,
+  getRoomCodeFromPath,
+} from '../../helpers/utils';
 import { store } from '../../store';
 import { updateIsCloud } from '../../store/slices/sessionSlice';
 
@@ -50,11 +55,14 @@ export const verifyToken = once(
   ) => {
     const accessToken = getAccessToken();
     if (!accessToken) {
-      setLoading(false);
-      setError({
-        title: i18n.t('app.token-missing-title'),
-        text: i18n.t('app.token-missing-des'),
-      });
+      // Share link /{roomCode} → portal join (login if needed) → ?access_token=.
+      const roomCode = getRoomCodeFromPath();
+      if (roomCode) {
+        window.location.replace(getPortalJoinUrl(roomCode));
+        return;
+      }
+      // No room token → send user to learner portal login.
+      window.location.replace(`${getPortalBaseUrl()}/login`);
       return;
     } else if (
       window.location.protocol === 'http:' &&

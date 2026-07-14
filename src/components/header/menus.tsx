@@ -11,9 +11,10 @@ import {
 
 interface IHeaderMenusProps {
   onOpenAlert(task: string): void;
+  onOpenShare(): void;
 }
 
-const HeaderMenus = ({ onOpenAlert }: IHeaderMenusProps) => {
+const HeaderMenus = ({ onOpenAlert, onOpenShare }: IHeaderMenusProps) => {
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
 
@@ -26,6 +27,16 @@ const HeaderMenus = ({ onOpenAlert }: IHeaderMenusProps) => {
         <DarkThemeSwitcher />
       </div>
       <div className="divider block md:hidden h-1 w-[110%] bg-Gray-50 -ml-3 my-0.5"></div> */}
+      <MenuItem>
+        <button
+          className="h-9 md:h-10 w-full cursor-pointer flex items-center hover:bg-Gray-50 dark:hover:bg-dark-secondary2 text-sm gap-2 leading-none font-medium text-Gray-950 dark:text-white px-2 md:px-3 rounded-lg transition-all duration-300 relative"
+          onClick={() => onOpenShare()}
+        >
+          <i className="pnm-screen-share text-primary-color dark:text-Blue2-500 text-base ltr:mr-2 rtl:ml-2 transition ease-in" />
+          {t('header.menus.share')}
+        </button>
+      </MenuItem>
+
       <MenuItem>
         <button
           className="h-9 md:h-10 w-full cursor-pointer flex items-center hover:bg-Gray-50 dark:hover:bg-dark-secondary2 text-sm gap-2 leading-none font-medium text-Gray-950 dark:text-white px-2 md:px-3 rounded-lg transition-all duration-300 relative"

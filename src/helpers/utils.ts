@@ -244,6 +244,64 @@ export const getAccessToken = () => {
   return getCookie(tokenCookieName);
 };
 
+/** ZenLeader room codes: `abc-defg-hijk` (matches Java MeetRoomCodes). */
+export const ZENLEADER_ROOM_CODE_RE = /^[a-z]{3}-[a-z]{4}-[a-z]{4}$/;
+
+/**
+ * Returns true when `pathname` is a single-segment ZenLeader room code
+ * (e.g. `/abc-defg-hijk` or `/abc-defg-hijk/`).
+ */
+export const isZenLeaderRoomCodePath = (pathname: string): boolean => {
+  const segment = pathname.replace(/^\/+|\/+$/g, '');
+  return ZENLEADER_ROOM_CODE_RE.test(segment);
+};
+
+/**
+ * Extracts a ZenLeader room code from a URL pathname, or null if invalid.
+ */
+export const getRoomCodeFromPath = (
+  pathname: string = window.location.pathname,
+): string | null => {
+  const segment = pathname.replace(/^\/+|\/+$/g, '');
+  return ZENLEADER_ROOM_CODE_RE.test(segment) ? segment : null;
+};
+
+/**
+ * Resolves the learner portal base URL (no trailing slash).
+ */
+export const getPortalBaseUrl = (): string => {
+  const cfg = (
+    window as unknown as {
+      plugNmeetConfig?: { portalUrl?: string };
+    }
+  ).plugNmeetConfig;
+  const host = window.location.hostname;
+  const isLocal = host === 'localhost' || host === '127.0.0.1';
+  return (
+    cfg?.portalUrl ||
+    (isLocal ? window.location.origin : 'https://portal.zenleader.xyz')
+  ).replace(/\/$/, '');
+};
+
+/**
+ * Builds the portal join URL that exchanges a room code for a meet token.
+ */
+export const getPortalJoinUrl = (roomCode: string): string => {
+  return `${getPortalBaseUrl()}/join/${encodeURIComponent(roomCode)}`;
+};
+
+/**
+ * Builds the public share URL for a meeting room (`https://meet…/{roomCode}`).
+ */
+export const getMeetingShareUrl = (roomCode: string): string => {
+  const host = window.location.hostname;
+  const isLocal = host === 'localhost' || host === '127.0.0.1';
+  const base = isLocal
+    ? window.location.origin
+    : `${window.location.protocol}//${window.location.host}`;
+  return `${base.replace(/\/$/, '')}/${roomCode}`;
+};
+
 export const formatNatsError = (err: any) => {
   let msg = i18n.t('notifications.nats-error-request-failed').toString();
 

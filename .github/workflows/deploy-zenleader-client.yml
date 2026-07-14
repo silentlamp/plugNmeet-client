@@ -1,0 +1,114 @@
+name: Deploy ZenLeader PlugNMeet Client Fork
+
+# Build silentlamp/plugNmeet-client (zenleader/dev) and sync dist to VPS /opt/plugNmeet/client/dist
+
+on:
+  push:
+    branches: ['zenleader/dev']
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-plugnmeet-client-zenleader
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - name: Install & build
+        # Portal OAuth: Vite loads `.env.production` via envDir=repo root.
+        # Always export production defaults so CI never ships an empty client ID
+        # (Meet config.js is never touched).
+        run: |
+          export VITE_PORTAL_GOOGLE_CLIENT_ID="${VITE_PORTAL_GOOGLE_CLIENT_ID:-236923025711-u2pujicahnr29s5mej8lat0djpemj4i5.apps.googleusercontent.com}"
+          export VITE_PORTAL_APPLE_CLIENT_ID="${VITE_PORTAL_APPLE_CLIENT_ID:-}"
+          if [ -n "${{ vars.VITE_PORTAL_GOOGLE_CLIENT_ID }}" ]; then
+            export VITE_PORTAL_GOOGLE_CLIENT_ID="${{ vars.VITE_PORTAL_GOOGLE_CLIENT_ID }}"
+          fi
+          if [ -n "${{ vars.VITE_PORTAL_APPLE_CLIENT_ID }}" ]; then
+            export VITE_PORTAL_APPLE_CLIENT_ID="${{ vars.VITE_PORTAL_APPLE_CLIENT_ID }}"
+          fi
+          echo "portal_oauth google=$([ -n "$VITE_PORTAL_GOOGLE_CLIENT_ID" ] && echo set || echo EMPTY) apple=$([ -n "$VITE_PORTAL_APPLE_CLIENT_ID" ] && echo set || echo empty)"
+          pnpm install --frozen-lockfile
+          pnpm run build
+          # Fail CI if Google ID was not baked into the portal login bundle
+          grep -q '236923025711\|Continue with Google' dist/assets/js/login-module.*.js
+          grep -q 'apps.googleusercontent.com' dist/assets/js/login-module.*.js
+          tar -czf client-dist.tgz -C dist .
+          bash scripts/package-portal-dist.sh
+
+      - name: Upload to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_SSH_HOST }}
+          username: ${{ secrets.VPS_SSH_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: client-dist.tgz,portal-dist.tgz
+          target: /tmp
+
+      - name: Install on VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_SSH_HOST }}
+          username: ${{ secrets.VPS_SSH_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            # CI user is typically `dev` (docker group, no passwordless sudo).
+            # /opt/plugNmeet/client must be writable by that user (see zen-leader-deploy AGENTS.md).
+            CLIENT_ROOT=/opt/plugNmeet/client
+            DEST="$CLIENT_ROOT/dist"
+            mkdir -p "$CLIENT_ROOT"
+            if [ -d "$DEST" ]; then
+              mv "$DEST" "$CLIENT_ROOT/dist.bak.$(date +%Y%m%d%H%M%S)"
+            fi
+            mkdir -p "$DEST"
+            tar -xzf /tmp/client-dist.tgz -C "$DEST"
+            # Meeting SPA only — learner portal is on portal.zenleader.xyz.
+            rm -f "$DEST/login.html"
+            rm -f "$DEST"/assets/js/login-module.*.js
+            rm -f "$DEST"/assets/css/login.*.css
+            if [ -f "$DEST/assets/config_sample.js" ]; then
+              cp "$DEST/assets/config_sample.js" "$DEST/assets/config.js"
+              sed -i "s|serverUrl:.*|serverUrl: 'https://meet.zenleader.xyz',|" "$DEST/assets/config.js"
+              sed -i "s|portalUrl:.*|portalUrl: 'https://portal.zenleader.xyz',|" "$DEST/assets/config.js"
+            fi
+            # Keep Meet dist free of portal-only OAuth env artifacts
+            rm -f "$DEST/assets/portal-env.js" "$DEST/assets/portal-env.sample.js"
+            {
+              echo "client_commit=${{ github.sha }}"
+              echo "client_remote=silentlamp/plugNmeet-client"
+              echo "built_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+              echo "portal_host=portal.zenleader.xyz"
+            } > /opt/plugNmeet/.zenleader-client-info 2>/dev/null || {
+              # info file may be root-owned; best-effort
+              echo "warn: could not write .zenleader-client-info" >&2
+            }
+            # Deploy portal SPA — extract to temp then move children (CI user cannot
+            # chmod/utime the portal web-root inode owned by www-data/root).
+            if [ -f /tmp/portal-dist.tgz ]; then
+              PORTAL_ROOT=/var/www/portal.zenleader.xyz
+              EXTRACT=$(mktemp -d)
+              tar -xzf /tmp/portal-dist.tgz -C "$EXTRACT"
+              mkdir -p "$PORTAL_ROOT"
+              find "$PORTAL_ROOT" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+              shopt -s dotglob nullglob
+              mv "$EXTRACT"/* "$PORTAL_ROOT"/
+              rm -rf "$EXTRACT"
+              echo "portal_deployed=$PORTAL_ROOT"
+            fi
+            curl -fsS -o /dev/null -w "meet_home=%{http_code}\n" https://meet.zenleader.xyz/
+            curl -fsSI https://meet.zenleader.xyz/login 2>/dev/null | tr -d '\r' | awk 'BEGIN{c=""} /^HTTP/{c=$2} tolower($1)=="location:"{print "meet_login=" c " location="$2; exit}'
+            curl -fsS -o /dev/null -w "portal_login=%{http_code}\n" https://portal.zenleader.xyz/login
+            docker restart plugnmeet-plugnmeet-1 >/dev/null || true
