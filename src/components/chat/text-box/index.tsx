@@ -19,6 +19,7 @@ import { uploadResumableFile } from '../../../helpers/fileUpload';
 import { addUserNotification } from '../../../store/slices/roomSettingsSlice';
 import SendIconSVG from '../../../assets/Icons/SendIconSVG';
 import { cleanHtmlForChat } from '../../../helpers/utils';
+import { ZL_MEET_FEATURES } from '../../../helpers/zenleaderMeetFeatures';
 
 const urlRegex =
   /(\b(https?):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%?=~_|])/gi;
@@ -64,7 +65,7 @@ const TextBoxArea = () => {
   };
 
   const showSendFile = useMemo(
-    () => !!chatFeatures?.isAllowFileUpload,
+    () => ZL_MEET_FEATURES.chatFileUpload && !!chatFeatures?.isAllowFileUpload,
     [chatFeatures],
   );
 
@@ -128,7 +129,11 @@ const TextBoxArea = () => {
 
   const handleOnPaste = useCallback(
     (e: ClipboardEvent) => {
-      if (isFileSendingLocked || isMsgSendingLocked) {
+      if (
+        !ZL_MEET_FEATURES.chatFileUpload ||
+        isFileSendingLocked ||
+        isMsgSendingLocked
+      ) {
         return;
       }
 

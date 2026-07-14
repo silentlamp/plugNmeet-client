@@ -21,4 +21,9 @@ export const ZL_MEET_FEATURES = {
   chatTranslation: false,
   /** Share / display external link admin menu. */
   displayExternalLink: false,
+  /**
+   * Chat file attachment / upload button (and paste-to-upload).
+   * Disabled for ZenLeader meetings — file sharing is not supported.
+   */
+  chatFileUpload: false,
 } as const;
