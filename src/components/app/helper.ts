@@ -10,7 +10,12 @@ import {
 import sendAPIRequest from '../../helpers/api/plugNmeetAPI';
 import { IErrorPageProps } from '../extra-pages/Error';
 import i18n from '../../helpers/i18n';
-import { getAccessToken } from '../../helpers/utils';
+import {
+  getAccessToken,
+  getPortalBaseUrl,
+  getPortalJoinUrl,
+  getRoomCodeFromPath,
+} from '../../helpers/utils';
 import { store } from '../../store';
 import { updateIsCloud } from '../../store/slices/sessionSlice';
 
@@ -50,20 +55,14 @@ export const verifyToken = once(
   ) => {
     const accessToken = getAccessToken();
     if (!accessToken) {
-      // No room token → send user to learner portal (portal.zenleader.xyz in prod).
-      const cfg = (
-        window as unknown as {
-          plugNmeetConfig?: { portalUrl?: string };
-        }
-      ).plugNmeetConfig;
-      const host = window.location.hostname;
-      const isLocal = host === 'localhost' || host === '127.0.0.1';
-      const portalBase = (
-        cfg?.portalUrl ||
-        (isLocal ? window.location.origin : 'https://portal.zenleader.xyz')
-      ).replace(/\/$/, '');
-      // Local Vite MPA serves the portal entry at /login (rewritten to login.html).
-      window.location.replace(`${portalBase}/login`);
+      // Share link /{roomCode} → portal join (login if needed) → ?access_token=.
+      const roomCode = getRoomCodeFromPath();
+      if (roomCode) {
+        window.location.replace(getPortalJoinUrl(roomCode));
+        return;
+      }
+      // No room token → send user to learner portal login.
+      window.location.replace(`${getPortalBaseUrl()}/login`);
       return;
     } else if (
       window.location.protocol === 'http:' &&

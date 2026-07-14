@@ -6,6 +6,7 @@ import { store, useAppSelector } from '../../store';
 import HeaderMenus from './menus';
 import RoomSettings from './room-settings';
 import KeyboardShortcuts from './keyboardShortcuts';
+import ShareMeetingModal from './shareMeetingModal';
 import VolumeControl from './volumeControl';
 import DurationView from './durationView';
 import DarkThemeSwitcher from './darkThemeSwitcher';
@@ -25,6 +26,7 @@ const Header = () => {
   const { t } = useTranslation();
   const [title, setTitle] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const [modalText, setModalText] = useState('');
   const [onConfirm, setOnConfirm] = useState<() => void>(() => () => {});
 
@@ -87,7 +89,10 @@ const Header = () => {
                     leaveFrom="transform opacity-100 scale-100 translate-y-0"
                     leaveTo="transform opacity-0 scale-95 -translate-y-2"
                   >
-                    <HeaderMenus onOpenAlert={() => handleLogout()} />
+                    <HeaderMenus
+                      onOpenAlert={() => handleLogout()}
+                      onOpenShare={() => setShowShareModal(true)}
+                    />
                   </Transition>
                 </div>
               )}
@@ -103,6 +108,10 @@ const Header = () => {
           }}
           title={t('header.menus.alert.confirm')}
           text={modalText}
+        />
+        <ShareMeetingModal
+          show={showShareModal}
+          onClose={() => setShowShareModal(false)}
         />
         <RoomSettings />
         <KeyboardShortcuts />

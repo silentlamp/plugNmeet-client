@@ -5,6 +5,7 @@ import { PortalShell } from './layouts/PortalShell';
 import { CreateEventPage } from './pages/CreateEventPage';
 import { CourseRunDetailPage } from './pages/CourseRunDetailPage';
 import { EventsPage } from './pages/EventsPage';
+import { JoinMeetingPage } from './pages/JoinMeetingPage';
 import { LoginPage } from './pages/LoginPage';
 import { MyCoursesPage } from './pages/MyCoursesPage';
 import { MyEventsPage } from './pages/MyEventsPage';
@@ -18,6 +19,9 @@ export function PortalApp() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route element={<RequireAuth />}>
+          {/* Meet share-link handoff — no hub chrome */}
+          <Route path="/join/:roomCode" element={<JoinMeetingPage />} />
+          <Route path="/join" element={<Navigate to="/my-courses" replace />} />
           <Route
             element={
               <div className="zl-shell zl-shell-hub">
@@ -34,10 +38,6 @@ export function PortalApp() {
             <Route path="/events" element={<EventsPage />} />
             <Route path="/my-events" element={<MyEventsPage />} />
             <Route path="/my-events/create" element={<CreateEventPage />} />
-            <Route
-              path="/join"
-              element={<Navigate to="/my-courses" replace />}
-            />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/my-courses" replace />} />

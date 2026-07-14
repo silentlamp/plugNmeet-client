@@ -106,6 +106,7 @@
     "room-audio-volume": "Meeting Audio",
     "room-screen-share-audio-volume": "Screen Share Audio",
     "menus": {
+      "share": "Share",
       "settings": "Settings",
       "keyboard-shortcuts": "Keyboard Shortcuts",
       "logout": "Leave Meeting",
@@ -115,6 +116,13 @@
         "logout": "You are about to leave the meeting.",
         "end": "You are about to end the meeting for everyone."
       }
+    },
+    "share-meeting": {
+      "title": "Share meeting",
+      "description": "Anyone with this link must sign in to ZenLeader before joining.",
+      "room-code": "Room code",
+      "copy": "Copy",
+      "copied": "Copied"
     },
     "room-settings": {
       "title": "Settings",
