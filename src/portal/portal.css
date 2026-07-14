@@ -511,6 +511,59 @@ body {
   flex-direction: column;
 }
 
+.zl-join-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--zl-surface, #f4f6f9);
+}
+
+.zl-join-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--zl-card, #fff);
+  border: 1px solid var(--zl-border, #e5e7eb);
+  border-radius: 16px;
+  box-shadow: var(--zl-shadow, 0 8px 24px rgba(16, 17, 20, 0.08));
+  padding: 28px 24px;
+  text-align: center;
+}
+
+.zl-join-card h1 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+  color: var(--zl-navy, #1a2332);
+}
+
+.zl-join-card p {
+  margin: 0 0 12px;
+  color: var(--zl-muted, #64748b);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.zl-join-code {
+  font-size: 0.85rem !important;
+}
+
+.zl-join-card code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+.zl-join-card .zl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  margin-top: 8px;
+  width: auto;
+  min-width: 180px;
+  padding: 0 16px;
+}
+
 .zl-dialog-backdrop {
   position: fixed;
   inset: 0;
