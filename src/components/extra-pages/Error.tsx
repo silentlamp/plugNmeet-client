@@ -1,11 +1,24 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import { getPortalBaseUrl } from '../../helpers/utils';
 
 export interface IErrorPageProps {
   title: string;
   text: string;
 }
 
+/**
+ * Full-screen error / session-ended card shown after disconnect or join failure.
+ * Includes a CTA back to the learner portal home.
+ */
 const ErrorPage = ({ title, text }: IErrorPageProps) => {
+  const { t } = useTranslation();
+
+  const goToPortalHome = useCallback(() => {
+    window.location.assign(`${getPortalBaseUrl()}/`);
+  }, []);
+
   return (
     <div
       id="errorPage"
@@ -25,6 +38,13 @@ const ErrorPage = ({ title, text }: IErrorPageProps) => {
           <p className="wrap-break-word text-sm 3xl:text-base leading-5 text-Gray-950/90 dark:text-dark-text">
             {text}
           </p>
+          <button
+            type="button"
+            onClick={goToPortalHome}
+            className="primary-button mt-8 h-10 px-6 cursor-pointer text-sm font-medium bg-Blue hover:bg-white border border-[#0088CC] rounded-[15px] text-white hover:text-Gray-950 transition-all duration-300 shadow-button-shadow"
+          >
+            {t('notifications.back-to-portal')}
+          </button>
         </div>
       </div>
     </div>
