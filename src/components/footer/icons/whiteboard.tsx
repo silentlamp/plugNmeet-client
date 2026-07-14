@@ -12,6 +12,7 @@ import { updateIsActiveWhiteboard } from '../../../store/slices/bottomIconsActiv
 import sendAPIRequest from '../../../helpers/api/plugNmeetAPI';
 import { WhiteBoardIconSVG } from '../../../assets/Icons/WhiteBoardIconSVG';
 import { participantsSelector } from '../../../store/slices/participantSlice';
+import { ZL_MEET_FEATURES } from '../../../helpers/zenleaderMeetFeatures';
 
 const WhiteboardIcon = () => {
   const { t } = useTranslation();
@@ -26,7 +27,8 @@ const WhiteboardIcon = () => {
       return {
         showTooltip: session.userDeviceType === 'desktop',
         allowedWhiteboard:
-          session.currentRoom.metadata?.roomFeatures?.whiteboardFeatures
+          ZL_MEET_FEATURES.whiteboard &&
+          !!session.currentRoom.metadata?.roomFeatures?.whiteboardFeatures
             ?.isAllow,
         currentUserId: currentUser?.userId,
         isAdmin: currentUser?.metadata?.isAdmin,

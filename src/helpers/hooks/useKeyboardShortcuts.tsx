@@ -25,6 +25,7 @@ import {
   updateShowRoomSettingsModal,
 } from '../../store/slices/roomSettingsSlice';
 import { getNatsConn } from '../nats';
+import { ZL_MEET_FEATURES } from '../zenleaderMeetFeatures';
 
 const useKeyboardShortcuts = (currentRoom?: Room) => {
   const dispatch = useAppDispatch();
@@ -182,6 +183,9 @@ const useKeyboardShortcuts = (currentRoom?: Room) => {
 
   // toggle whiteboard (ctrl+alt+w)
   useHotkeys('ctrl+alt+w', () => {
+    if (!ZL_MEET_FEATURES.whiteboard) {
+      return;
+    }
     const isActiveWhiteboard =
       store.getState().bottomIconsActivity.isActiveWhiteboard;
     dispatch(updateIsActiveWhiteboard(!isActiveWhiteboard));
