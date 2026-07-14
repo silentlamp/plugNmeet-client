@@ -39,6 +39,20 @@ export type MeetingTokenResponse = {
   roomCode?: string;
 };
 
+/** POST /api/v1/events */
+export type CreateEventPayload = {
+  title: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  publishImmediately?: boolean;
+};
+
+/** POST /api/v1/meetings/instant */
+export type CreateInstantMeetingPayload = {
+  title?: string;
+};
+
 /** Author nested in event responses. */
 export type EventAuthor = {
   id?: string;
@@ -108,6 +122,7 @@ export type CourseSessionResponse = {
   scheduledAt?: string;
   durationMinutes?: number;
   meetingRoomId?: string | null;
+  waitingRoomEnabled?: boolean | null;
   status?: string;
   recordingUrl?: string | null;
 };

@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import type { CourseSessionResponse } from '../api/types';
 import { canJoinSession, formatSessionTime } from '../utils/sessionHelpers';
 
@@ -6,27 +8,48 @@ type SessionRowProps = {
   variant: 'live' | 'upcoming' | 'ended';
   joiningId: string | null;
   onJoin: (session: CourseSessionResponse) => void;
+  /** When true, show Host live and allow starting upcoming rooms. */
+  isInstructor?: boolean;
 };
 
 /**
- * Compact LMS session row with optional Join live action.
+ * Compact LMS session row with optional Join / Host live action.
  *
  * @param session - course session
  * @param variant - live | upcoming | ended
  * @param joiningId - session id currently joining
  * @param onJoin - join handler
+ * @param isInstructor - assigned course-run instructor
  */
 export function SessionRow({
   session,
   variant,
   joiningId,
   onJoin,
+  isInstructor = false,
 }: SessionRowProps) {
   const busy = joiningId === session.id;
-  const canJoin = variant === 'live' && canJoinSession(session);
+  const roomCode = session.meetingRoomId?.trim() || '';
+  const canStart =
+    Boolean(roomCode) &&
+    (variant === 'live' || (isInstructor && variant === 'upcoming'));
   const duration = session.durationMinutes
     ? `${session.durationMinutes} min`
     : '';
+  const [copied, setCopied] = useState(false);
+
+  const copyRoomCode = async () => {
+    if (!roomCode) {
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(roomCode);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      // ignore
+    }
+  };
 
   return (
     <article className={`zl-row zl-row-${variant}`}>
@@ -63,8 +86,25 @@ export function SessionRow({
             {session.description ? (
               <p className="zl-card-desc">{session.description}</p>
             ) : null}
-            {!canJoinSession(session) && variant !== 'ended' ? (
+            {roomCode ? (
+              <div className="zl-room-code-row">
+                <span className="zl-room-code-label">Room code</span>
+                <code className="zl-room-code">{roomCode}</code>
+                <button
+                  type="button"
+                  className="zl-btn zl-btn-ghost zl-btn-xs"
+                  onClick={() => void copyRoomCode()}
+                >
+                  {copied ? 'Copied' : 'Copy'}
+                </button>
+              </div>
+            ) : !canJoinSession(session) && variant !== 'ended' ? (
               <p className="zl-card-time">Room not ready yet</p>
+            ) : null}
+            {isInstructor && variant === 'upcoming' && roomCode ? (
+              <p className="zl-card-time">
+                As instructor you can open the room early for learners.
+              </p>
             ) : null}
             {variant === 'ended' && session.recordingUrl ? (
               <a
@@ -79,15 +119,21 @@ export function SessionRow({
           </div>
         </div>
 
-        {variant === 'live' ? (
+        {canStart ? (
           <div className="zl-row-actions">
             <button
               type="button"
               className="zl-btn zl-btn-accent zl-btn-sm"
-              disabled={!canJoin || joiningId !== null}
+              disabled={joiningId !== null}
               onClick={() => onJoin(session)}
             >
-              {busy ? 'Joining…' : 'Join live'}
+              {busy
+                ? isInstructor
+                  ? 'Opening…'
+                  : 'Joining…'
+                : isInstructor
+                  ? 'Host live'
+                  : 'Join live'}
             </button>
           </div>
         ) : null}

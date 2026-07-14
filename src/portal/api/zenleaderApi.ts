@@ -11,6 +11,8 @@ import type {
   CourseResponse,
   CourseRunResponse,
   CourseSessionResponse,
+  CreateEventPayload,
+  CreateInstantMeetingPayload,
   EnrollmentResponse,
   EventResponse,
   MeetingTokenResponse,
@@ -383,6 +385,20 @@ export async function fetchMyCreated(): Promise<EventResponse[]> {
 }
 
 /**
+ * Creates an event owned by the authenticated user (auto room code + live session).
+ *
+ * @param payload - title, schedule, and publish flag
+ */
+export async function createEvent(
+  payload: CreateEventPayload,
+): Promise<EventResponse> {
+  return apiFetch<EventResponse>('/api/v1/events', {
+    method: 'POST',
+    body: payload,
+  });
+}
+
+/**
  * Loads the current user's course enrollments.
  */
 export async function fetchMyEnrollments(): Promise<EnrollmentResponse[]> {
@@ -467,6 +483,29 @@ export async function fetchMeetingToken(roomCode: string): Promise<string> {
   }
 
   return data.token;
+}
+
+/**
+ * Creates an instant (unlinked) meeting for the signed-in host and returns token + room code.
+ *
+ * @param payload - optional meeting title
+ */
+export async function createInstantMeeting(
+  payload: CreateInstantMeetingPayload = {},
+): Promise<MeetingTokenResponse> {
+  const data = await apiFetch<MeetingTokenResponse>(
+    '/api/v1/meetings/instant',
+    {
+      method: 'POST',
+      body: payload,
+    },
+  );
+
+  if (!data?.token) {
+    throw new ZenApiError('No meeting token received', 500);
+  }
+
+  return data;
 }
 
 /**

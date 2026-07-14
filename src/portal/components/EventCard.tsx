@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import type { EventResponse } from '../api/types';
 import {
   eventAuthorName,
@@ -38,6 +40,7 @@ export function EventCard({
   const thumb = event.thumbnailUrl || '/assets/imgs/logo-zenleader.png';
   const author = eventAuthorName(event);
   const canJoin = variant === 'live' && Boolean(roomCode);
+  const [copied, setCopied] = useState(false);
   const hint =
     relationHint ||
     (variant === 'draft' ? 'Created by you · draft' : 'Saved · interested');
@@ -50,6 +53,19 @@ export function EventCard({
         : variant === 'draft'
           ? formatStartLabel(event.startTime) || 'Draft — not published yet'
           : formatStartLabel(event.startTime);
+
+  const copyRoomCode = async () => {
+    if (!roomCode) {
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(roomCode);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      // ignore clipboard failures
+    }
+  };
 
   return (
     <article
@@ -102,6 +118,19 @@ export function EventCard({
               <p className="zl-card-desc">{event.description}</p>
             ) : null}
             {timeLabel ? <p className="zl-card-time">{timeLabel}</p> : null}
+            {roomCode ? (
+              <div className="zl-room-code-row">
+                <span className="zl-room-code-label">Room code</span>
+                <code className="zl-room-code">{roomCode}</code>
+                <button
+                  type="button"
+                  className="zl-btn zl-btn-ghost zl-btn-xs"
+                  onClick={() => void copyRoomCode()}
+                >
+                  {copied ? 'Copied' : 'Copy'}
+                </button>
+              </div>
+            ) : null}
           </div>
 
           <div className="zl-row-thumb">

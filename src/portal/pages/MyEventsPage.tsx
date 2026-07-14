@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import type { EventResponse } from '../api/types';
 import {
@@ -29,10 +29,22 @@ function isDraftEvent(event: EventResponse): boolean {
  */
 export function MyEventsPage() {
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [events, setEvents] = useState<EventResponse[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [joiningCode, setJoiningCode] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const state = location.state as { createdRoomCode?: string | null } | null;
+    if (state?.createdRoomCode) {
+      setNotice(
+        `Event created. Room code: ${state.createdRoomCode} — share it so others can join from Meet.`,
+      );
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location, navigate]);
 
   const loadEvents = useCallback(
     async (opts?: { silent?: boolean }) => {
@@ -111,15 +123,29 @@ export function MyEventsPage() {
           <h1>My events</h1>
           <p>Events you created — join when they go live</p>
         </div>
-        <button
-          type="button"
-          className="zl-btn zl-btn-ghost zl-btn-sm"
-          onClick={() => void loadEvents()}
-          disabled={loadingEvents}
-        >
-          Refresh
-        </button>
+        <div className="zl-page-head-actions">
+          <Link
+            className="zl-btn zl-btn-accent zl-btn-sm"
+            to="/my-events/create"
+          >
+            Create event
+          </Link>
+          <button
+            type="button"
+            className="zl-btn zl-btn-ghost zl-btn-sm"
+            onClick={() => void loadEvents()}
+            disabled={loadingEvents}
+          >
+            Refresh
+          </button>
+        </div>
       </div>
+
+      {notice ? (
+        <div className="zl-alert zl-alert-success" role="status">
+          {notice}
+        </div>
+      ) : null}
 
       {error ? (
         <div className="zl-alert" role="alert">
@@ -174,8 +200,9 @@ export function MyEventsPage() {
             </div>
             {upcoming.length === 0 ? (
               <div className="zl-empty">
-                No upcoming published events. Create events in the ZenLeader app
-                to see them here.
+                No upcoming published events.{' '}
+                <Link to="/my-events/create">Create an event</Link> to get a
+                shareable room code.
               </div>
             ) : (
               <div className="zl-list">

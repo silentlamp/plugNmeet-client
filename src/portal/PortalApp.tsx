@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { RequireAuth } from './auth/RequireAuth';
 import { PortalShell } from './layouts/PortalShell';
+import { CreateEventPage } from './pages/CreateEventPage';
 import { CourseRunDetailPage } from './pages/CourseRunDetailPage';
 import { EventsPage } from './pages/EventsPage';
 import { LoginPage } from './pages/LoginPage';
@@ -32,6 +33,7 @@ export function PortalApp() {
             />
             <Route path="/events" element={<EventsPage />} />
             <Route path="/my-events" element={<MyEventsPage />} />
+            <Route path="/my-events/create" element={<CreateEventPage />} />
             <Route
               path="/join"
               element={<Navigate to="/my-courses" replace />}

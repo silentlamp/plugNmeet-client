@@ -5,11 +5,13 @@ import type {
   CourseResponse,
   CourseRunResponse,
   CourseSessionResponse,
+  EnrollmentResponse,
 } from '../api/types';
 import {
   fetchCourse,
   fetchCourseRun,
   fetchMeetingToken,
+  fetchMyEnrollments,
   fetchSessions,
   logout,
   redirectToMeeting,
@@ -20,17 +22,30 @@ import { SessionRow } from '../components/SessionRow';
 import { partitionSessions } from '../utils/sessionHelpers';
 
 /**
- * Course-run live schedule: Live / Upcoming / Ended sessions with join.
+ * Returns true when the enrollment role is the assigned course-run instructor.
+ *
+ * @param role - enrollment role from API
+ */
+function isInstructorRole(role?: string | null): boolean {
+  const normalized = String(role || '').toUpperCase();
+  return normalized === 'INSTRUCTOR' || normalized === 'TEACHER';
+}
+
+/**
+ * Course-run live schedule: Live / Upcoming / Ended sessions with join / host.
  */
 export function CourseRunDetailPage() {
   const { courseRunId = '' } = useParams();
   const navigate = useNavigate();
   const [course, setCourse] = useState<CourseResponse | null>(null);
   const [courseRun, setCourseRun] = useState<CourseRunResponse | null>(null);
+  const [enrollment, setEnrollment] = useState<EnrollmentResponse | null>(null);
   const [sessions, setSessions] = useState<CourseSessionResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [joiningId, setJoiningId] = useState<string | null>(null);
+
+  const isInstructor = isInstructorRole(enrollment?.role);
 
   const load = useCallback(async () => {
     if (!courseRunId) {
@@ -38,13 +53,19 @@ export function CourseRunDetailPage() {
     }
     setLoading(true);
     try {
-      const run = await fetchCourseRun(courseRunId);
+      const [run, enrollments] = await Promise.all([
+        fetchCourseRun(courseRunId),
+        fetchMyEnrollments(),
+      ]);
+      const myEnrollment =
+        enrollments.find((item) => item.courseRunId === courseRunId) || null;
       const [courseData, sessionList] = await Promise.all([
         fetchCourse(run.courseId),
         fetchSessions(courseRunId),
       ]);
       setCourseRun(run);
       setCourse(courseData);
+      setEnrollment(myEnrollment);
       setSessions(sessionList);
       setError(null);
     } catch (err) {
@@ -98,16 +119,25 @@ export function CourseRunDetailPage() {
             ← My courses
           </Link>
           <h1>{course?.title || courseRun?.code || 'Course schedule'}</h1>
-          <p>Live sessions for this course run</p>
+          <p>
+            {isInstructor
+              ? 'You are the assigned instructor — host live rooms for this run'
+              : 'Live sessions for this course run'}
+          </p>
         </div>
-        <button
-          type="button"
-          className="zl-btn zl-btn-ghost zl-btn-sm"
-          onClick={() => void load()}
-          disabled={loading}
-        >
-          Refresh
-        </button>
+        <div className="zl-page-head-actions">
+          {isInstructor ? (
+            <span className="zl-chip zl-chip-teaching">Teaching</span>
+          ) : null}
+          <button
+            type="button"
+            className="zl-btn zl-btn-ghost zl-btn-sm"
+            onClick={() => void load()}
+            disabled={loading}
+          >
+            Refresh
+          </button>
+        </div>
       </div>
 
       {error ? (
@@ -124,7 +154,11 @@ export function CourseRunDetailPage() {
             <div className="zl-section-head">
               <div>
                 <h2>Live now</h2>
-                <p>Sessions you can join right now</p>
+                <p>
+                  {isInstructor
+                    ? 'Open the room as host (waiting-room approve learners)'
+                    : 'Sessions you can join right now'}
+                </p>
               </div>
               {live.length > 0 ? (
                 <span className="zl-badge-live">
@@ -142,6 +176,7 @@ export function CourseRunDetailPage() {
                     key={session.id}
                     session={session}
                     variant="live"
+                    isInstructor={isInstructor}
                     joiningId={joiningId}
                     onJoin={(s) => void joinSession(s)}
                   />
@@ -154,7 +189,11 @@ export function CourseRunDetailPage() {
             <div className="zl-section-head">
               <div>
                 <h2>Upcoming</h2>
-                <p>Scheduled live sessions</p>
+                <p>
+                  {isInstructor
+                    ? 'You can start a room before the scheduled time'
+                    : 'Scheduled live sessions'}
+                </p>
               </div>
               <span className="zl-count-chip">{upcoming.length}</span>
             </div>
@@ -167,6 +206,7 @@ export function CourseRunDetailPage() {
                     key={session.id}
                     session={session}
                     variant="upcoming"
+                    isInstructor={isInstructor}
                     joiningId={joiningId}
                     onJoin={(s) => void joinSession(s)}
                   />
@@ -193,6 +233,7 @@ export function CourseRunDetailPage() {
                       key={session.id}
                       session={session}
                       variant="ended"
+                      isInstructor={isInstructor}
                       joiningId={joiningId}
                       onJoin={(s) => void joinSession(s)}
                     />

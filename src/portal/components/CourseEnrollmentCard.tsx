@@ -19,6 +19,8 @@ export function CourseEnrollmentCard({ item }: CourseEnrollmentCardProps) {
     typeof enrollment.progressPercent === 'number'
       ? Math.max(0, Math.min(100, enrollment.progressPercent))
       : null;
+  const role = String(enrollment.role || '').toUpperCase();
+  const isInstructor = role === 'INSTRUCTOR' || role === 'TEACHER';
 
   return (
     <article className="zl-row">
@@ -26,14 +28,26 @@ export function CourseEnrollmentCard({ item }: CourseEnrollmentCardProps) {
         className="zl-row-main zl-row-link"
         to={`/my-courses/${enrollment.courseRunId}`}
       >
-        <div className="zl-row-body">
-          <div className="zl-row-copy">
-            <h3 className="zl-card-title">{title}</h3>
-            <p className="zl-card-time">
+        <div className="zl-row-top">
+          <div className="zl-row-author-text">
+            <span className="zl-author-name">{title}</span>
+            <span className="zl-author-hint">
               Run {courseRun.code || enrollment.courseRunCode || '—'}
               {enrollment.status ? ` · ${enrollment.status}` : ''}
-            </p>
-            {progress !== null ? (
+            </span>
+          </div>
+          {isInstructor ? (
+            <span className="zl-chip zl-chip-teaching">Teaching</span>
+          ) : null}
+        </div>
+        <div className="zl-row-body">
+          <div className="zl-row-copy">
+            {isInstructor ? (
+              <p className="zl-card-time">
+                Open schedule to host live class rooms
+              </p>
+            ) : null}
+            {progress !== null && !isInstructor ? (
               <div className="zl-progress">
                 <div
                   className="zl-progress-bar"
