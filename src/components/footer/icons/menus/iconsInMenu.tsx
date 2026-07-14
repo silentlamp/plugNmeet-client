@@ -87,18 +87,19 @@ const IconsInMenu = () => {
 
   return (
     <>
-      {roomFeatures?.whiteboardFeatures?.isAllow && (
-        <FooterMenuItem
-          onClick={toggleWhiteboard}
-          isActive={isActiveWhiteboard}
-          icon={<WhiteBoardIconSVG />}
-          text={
-            isActiveWhiteboard
-              ? t('footer.icons.hide-whiteboard')
-              : t('footer.icons.show-whiteboard')
-          }
-        />
-      )}
+      {ZL_MEET_FEATURES.whiteboard &&
+        roomFeatures?.whiteboardFeatures?.isAllow && (
+          <FooterMenuItem
+            onClick={toggleWhiteboard}
+            isActive={isActiveWhiteboard}
+            icon={<WhiteBoardIconSVG />}
+            text={
+              isActiveWhiteboard
+                ? t('footer.icons.hide-whiteboard')
+                : t('footer.icons.show-whiteboard')
+            }
+          />
+        )}
       {ZL_MEET_FEATURES.sharedNotepad &&
         roomFeatures?.sharedNotePadFeatures?.isActive && (
           <FooterMenuItem

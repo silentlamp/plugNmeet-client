@@ -43,7 +43,7 @@ const Footer = () => {
 
         <div className="footer-middle flex items-center gap-1 3xl:gap-2">
           <ScreenshareIcon />
-          <WhiteboardIcon />
+          {ZL_MEET_FEATURES.whiteboard && <WhiteboardIcon />}
           <ReactionsIcon />
           {ZL_MEET_FEATURES.sharedNotepad && <SharedNotePadIcon />}
           <PollsIcon />

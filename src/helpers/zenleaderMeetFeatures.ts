@@ -15,6 +15,12 @@ export const ZL_MEET_FEATURES = {
   /** Shared notepad admin toggle and footer icon. */
   sharedNotepad: false,
   /**
+   * Excalidraw whiteboard footer icon, menus, lock options, and NATS sync.
+   * Disabled for ZenLeader — mobile does not support whiteboard, and LMS
+   * sessions use A/V + chat instead.
+   */
+  whiteboard: false,
+  /**
    * Standalone chat-message translation tab (Insights chat translation).
    * Does not affect transcription speech translation / subtitle langs.
    */

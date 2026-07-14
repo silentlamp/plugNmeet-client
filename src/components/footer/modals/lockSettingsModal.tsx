@@ -97,11 +97,15 @@ const LockSettingsModal = () => {
       checked: roomLockSettings?.lockScreenSharing ?? false,
       service: 'screenShare',
     },
-    {
-      label: t('footer.modal.lock-whiteboard'),
-      checked: roomLockSettings?.lockWhiteboard ?? false,
-      service: 'whiteboard',
-    },
+    ...(ZL_MEET_FEATURES.whiteboard
+      ? [
+          {
+            label: t('footer.modal.lock-whiteboard'),
+            checked: roomLockSettings?.lockWhiteboard ?? false,
+            service: 'whiteboard',
+          },
+        ]
+      : []),
     ...(ZL_MEET_FEATURES.sharedNotepad
       ? [
           {

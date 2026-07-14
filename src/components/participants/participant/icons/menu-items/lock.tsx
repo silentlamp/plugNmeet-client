@@ -12,6 +12,7 @@ import { store, useAppSelector } from '../../../../../store';
 import { participantsSelector } from '../../../../../store/slices/participantSlice';
 import { ICurrentUserMetadata } from '../../../../../store/slices/interfaces/session';
 import sendAPIRequest from '../../../../../helpers/api/plugNmeetAPI';
+import { ZL_MEET_FEATURES } from '../../../../../helpers/zenleaderMeetFeatures';
 
 interface ILockSettingMenuItemProps {
   userId: string;
@@ -119,14 +120,18 @@ const LockSettingMenuItem = ({ userId }: ILockSettingMenuItemProps) => {
     },
     {
       key: 'whiteboard',
-      isDisplayed: roomFeatures?.whiteboardFeatures?.isAllow,
+      isDisplayed:
+        ZL_MEET_FEATURES.whiteboard &&
+        roomFeatures?.whiteboardFeatures?.isAllow,
       isLocked: lockSettings?.lockWhiteboard,
       lockText: t('left-panel.menus.items.lock-whiteboard'),
       unlockText: t('left-panel.menus.items.unlock-whiteboard'),
     },
     {
       key: 'sharedNotepad',
-      isDisplayed: roomFeatures?.sharedNotePadFeatures?.isAllow,
+      isDisplayed:
+        ZL_MEET_FEATURES.sharedNotepad &&
+        roomFeatures?.sharedNotePadFeatures?.isAllow,
       isLocked: lockSettings?.lockSharedNotepad,
       lockText: t('left-panel.menus.items.lock-shared-notepad'),
       unlockText: t('left-panel.menus.items.unlock-shared-notepad'),

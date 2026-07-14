@@ -38,6 +38,7 @@ import {
   TextWithInfo,
 } from '../../store/slices/interfaces/speechServices';
 import { addAllChatMessages } from '../../store/slices/chatMessagesSlice';
+import { ZL_MEET_FEATURES } from '../zenleaderMeetFeatures';
 import { setSpeechToTextLastFinalTexts } from '../../store/slices/speechServicesSlice';
 import { getChatDonors, getWhiteboardDonors } from '../utils';
 import i18n from '../i18n';
@@ -187,6 +188,9 @@ export default class SubscriptionHandler {
    * Subscribes to the room's whiteboard channel using NATS Core Pub/Sub for low latency.
    */
   private async subscribeToWhiteboard() {
+    if (!ZL_MEET_FEATURES.whiteboard) {
+      return;
+    }
     if (!this.connectNats.nc) {
       return;
     }
