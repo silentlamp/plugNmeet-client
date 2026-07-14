@@ -342,7 +342,7 @@ export function JoinRoomForm({
           name="roomCode"
           type="text"
           required
-          placeholder="xxx-xxxx-xxxx"
+          placeholder="xxx-xxxx-xxx"
           autoComplete="off"
           autoFocus
           disabled={joining}

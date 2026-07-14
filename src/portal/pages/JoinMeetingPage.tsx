@@ -7,13 +7,12 @@ import {
   ZenApiError,
 } from '../api/zenleaderApi';
 import { ZenBreathingLoader } from '../../components/extra-pages/ZenBreathingLoader';
-
-/** Matches Java MeetRoomCodes: abc-defg-hijk */
-const ROOM_CODE_RE = /^[a-z]{3}-[a-z]{4}-[a-z]{4}$/;
+import { ZENLEADER_ROOM_CODE_RE } from '../../helpers/utils';
 
 /**
  * Auth-gated page that exchanges a room code for a meet token and redirects
  * into the meeting SPA with `?access_token=`.
+ * Room codes come from Java MeetRoomCodes (`xxx-xxxx-xxx`).
  */
 export function JoinMeetingPage() {
   const { roomCode: rawCode } = useParams<{ roomCode: string }>();
@@ -21,7 +20,7 @@ export function JoinMeetingPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!ROOM_CODE_RE.test(roomCode)) {
+    if (!ZENLEADER_ROOM_CODE_RE.test(roomCode)) {
       setError('Invalid meeting link. Check the room code and try again.');
       return;
     }
