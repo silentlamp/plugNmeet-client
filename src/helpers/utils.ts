@@ -244,12 +244,12 @@ export const getAccessToken = () => {
   return getCookie(tokenCookieName);
 };
 
-/** ZenLeader room codes: `abc-defg-hijk` (matches Java MeetRoomCodes). */
-export const ZENLEADER_ROOM_CODE_RE = /^[a-z]{3}-[a-z]{4}-[a-z]{4}$/;
+/** ZenLeader room codes from Java MeetRoomCodes: `xxx-xxxx-xxx` (also allow `xxx-xxxx-xxxx`). */
+export const ZENLEADER_ROOM_CODE_RE = /^[a-z]{3}-[a-z]{4}-[a-z]{3,4}$/;
 
 /**
  * Returns true when `pathname` is a single-segment ZenLeader room code
- * (e.g. `/abc-defg-hijk` or `/abc-defg-hijk/`).
+ * (e.g. `/hrj-wbig-kfm` or `/abc-defg-hijk/`).
  */
 export const isZenLeaderRoomCodePath = (pathname: string): boolean => {
   const segment = pathname.replace(/^\/+|\/+$/g, '');
