@@ -10,6 +10,7 @@ import {
   ZenApiError,
 } from '../api/zenleaderApi';
 import { CourseEnrollmentCard } from '../components/CourseEnrollmentCard';
+import { PortalLoading } from '../components/PortalLoading';
 
 /**
  * Lists the signed-in user's enrollments with course metadata.
@@ -74,7 +75,7 @@ export function MyCoursesPage() {
       ) : null}
 
       {loading ? (
-        <div className="zl-loading">Loading your courses…</div>
+        <PortalLoading message="Loading your courses…" />
       ) : items.length === 0 ? (
         <div className="zl-empty">
           No enrollments yet. Purchase or enroll in a course in the ZenLeader
