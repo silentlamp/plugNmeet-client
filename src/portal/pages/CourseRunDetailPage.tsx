@@ -18,6 +18,7 @@ import {
   upsertSessionJoined,
   ZenApiError,
 } from '../api/zenleaderApi';
+import { PortalLoading } from '../components/PortalLoading';
 import { SessionRow } from '../components/SessionRow';
 import { partitionSessions } from '../utils/sessionHelpers';
 
@@ -147,7 +148,7 @@ export function CourseRunDetailPage() {
       ) : null}
 
       {loading ? (
-        <div className="zl-loading">Loading schedule…</div>
+        <PortalLoading message="Loading schedule…" />
       ) : (
         <>
           <section className="zl-section">

@@ -10,6 +10,7 @@ import {
   ZenApiError,
 } from '../api/zenleaderApi';
 import { EventCard } from '../components/EventCard';
+import { PortalLoading } from '../components/PortalLoading';
 import { partitionEvents } from '../utils/eventHelpers';
 
 const POLL_MS = 20_000;
@@ -154,7 +155,7 @@ export function MyEventsPage() {
       ) : null}
 
       {loadingEvents ? (
-        <div className="zl-loading">Loading your events…</div>
+        <PortalLoading message="Loading your events…" />
       ) : (
         <>
           <section id="my-live-now" className="zl-section">
