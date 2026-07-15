@@ -97,11 +97,15 @@ const LockSettingsModal = () => {
       checked: roomLockSettings?.lockScreenSharing ?? false,
       service: 'screenShare',
     },
-    {
-      label: t('footer.modal.lock-whiteboard'),
-      checked: roomLockSettings?.lockWhiteboard ?? false,
-      service: 'whiteboard',
-    },
+    ...(ZL_MEET_FEATURES.whiteboard
+      ? [
+          {
+            label: t('footer.modal.lock-whiteboard'),
+            checked: roomLockSettings?.lockWhiteboard ?? false,
+            service: 'whiteboard',
+          },
+        ]
+      : []),
     ...(ZL_MEET_FEATURES.sharedNotepad
       ? [
           {
@@ -126,11 +130,15 @@ const LockSettingsModal = () => {
       checked: roomLockSettings?.lockChatSendMessage ?? false,
       service: 'sendChatMsg',
     },
-    {
-      label: t('footer.modal.lock-chat-file-share'),
-      checked: roomLockSettings?.lockChatFileShare ?? false,
-      service: 'chatFile',
-    },
+    ...(ZL_MEET_FEATURES.chatFileUpload
+      ? [
+          {
+            label: t('footer.modal.lock-chat-file-share'),
+            checked: roomLockSettings?.lockChatFileShare ?? false,
+            service: 'chatFile',
+          },
+        ]
+      : []),
     {
       label: t('footer.modal.lock-private-chat'),
       checked: roomLockSettings?.lockPrivateChat ?? false,

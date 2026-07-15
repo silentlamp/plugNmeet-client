@@ -26,4 +26,14 @@ export const ZL_MEET_FEATURES = {
    * Disabled for ZenLeader meetings — file sharing is not supported.
    */
   chatFileUpload: false,
+  /**
+   * Whiteboard footer/menu — matches mobile create-time disable and Java
+   * MeetGatewayClient (isAllow:false). Kept off even if room metadata still
+   * has default true from legacy proto.Merge.
+   */
+  whiteboard: false,
+  /**
+   * Cloud/local recording footer — infra not deployed; matches Java create flags.
+   */
+  recording: false,
 } as const;
