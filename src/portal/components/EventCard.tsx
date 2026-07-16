@@ -7,6 +7,16 @@ import {
   formatEventTime,
   formatStartLabel,
 } from '../utils/eventHelpers';
+import { Badge } from '@/portal/components/ui/badge';
+import { Button } from '@/portal/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/portal/components/ui/card';
 
 type EventCardVariant = 'live' | 'upcoming' | 'ended' | 'draft';
 
@@ -22,13 +32,14 @@ type EventCardProps = {
 };
 
 /**
- * Compact Dojo-style horizontal event row for the meet hub.
+ * Event row card for Saved / My events hubs (shadcn Card + Badge + Button).
  *
  * @param event - event payload
  * @param variant - live | upcoming | ended | draft
  * @param joiningCode - room code currently joining, if any
  * @param onJoin - join handler
  * @param relationHint - optional author-line hint (saved vs created)
+ * @param compactMeta - hide redundant creator hints on My events
  */
 export function EventCard({
   event,
@@ -81,15 +92,19 @@ export function EventCard({
   };
 
   return (
-    <article
-      className={`zl-row zl-row-${variant}${variant === 'live' ? ' zl-row-live' : ''}`}
+    <Card
+      className={
+        variant === 'live'
+          ? 'gap-4 border-primary/40 py-4 shadow-sm'
+          : 'gap-4 py-4 shadow-sm'
+      }
     >
-      <div className="zl-row-main">
-        <div className="zl-row-top">
-          <div className="zl-row-author">
+      <CardHeader className="gap-3 px-4 [.border-b]:pb-0">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2.5">
             {event.author?.avatarUrl ? (
               <img
-                className="zl-avatar"
+                className="size-9 shrink-0 rounded-full object-cover"
                 src={event.author.avatarUrl}
                 alt=""
                 onError={(e) => {
@@ -97,81 +112,98 @@ export function EventCard({
                 }}
               />
             ) : (
-              <span className="zl-avatar zl-avatar-fallback" aria-hidden>
+              <span
+                className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-secondary-foreground"
+                aria-hidden
+              >
                 {author.slice(0, 1).toUpperCase()}
               </span>
             )}
-            <div className="zl-row-author-text">
-              <span className="zl-author-name">{author}</span>
-              <span className="zl-author-hint">{hint}</span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">{author}</p>
+              <p className="truncate text-xs text-muted-foreground">{hint}</p>
             </div>
           </div>
-
           {variant === 'live' ? (
-            <span className="zl-live-pill">
-              <span className="zl-live-dot" aria-hidden />
+            <Badge className="shrink-0 gap-1.5 bg-destructive text-white hover:bg-destructive">
+              <span className="size-1.5 animate-pulse rounded-full bg-white" />
               LIVE
-            </span>
+            </Badge>
           ) : null}
           {variant === 'upcoming' ? (
-            <span className="zl-chip zl-chip-upcoming">Upcoming</span>
+            <Badge variant="secondary" className="shrink-0">
+              Upcoming
+            </Badge>
           ) : null}
           {variant === 'ended' ? (
-            <span className="zl-chip zl-chip-ended">Ended</span>
+            <Badge variant="outline" className="shrink-0">
+              Ended
+            </Badge>
           ) : null}
           {variant === 'draft' ? (
-            <span className="zl-chip zl-chip-draft">Draft</span>
+            <Badge variant="outline" className="shrink-0">
+              Draft
+            </Badge>
           ) : null}
         </div>
+      </CardHeader>
 
-        <div className="zl-row-body">
-          <div className="zl-row-copy">
-            <h3 className="zl-card-title">{event.title || 'Event'}</h3>
-            {event.description ? (
-              <p className="zl-card-desc">{event.description}</p>
-            ) : null}
-            {timeLabel ? <p className="zl-card-time">{timeLabel}</p> : null}
-            {roomCode ? (
-              <div className="zl-room-code-row">
-                <span className="zl-room-code-label">Room code</span>
-                <code className="zl-room-code">{roomCode}</code>
-                <button
-                  type="button"
-                  className="zl-btn zl-btn-ghost zl-btn-xs"
-                  onClick={() => void copyRoomCode()}
-                >
-                  {copied ? 'Copied' : 'Copy'}
-                </button>
-              </div>
-            ) : null}
-          </div>
-
-          <div className="zl-row-thumb">
-            <img
-              src={thumb}
-              alt=""
-              onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src =
-                  '/assets/imgs/logo-zenleader.png';
-              }}
-            />
-          </div>
+      <CardContent className="flex gap-4 px-4">
+        <div className="min-w-0 flex-1 space-y-2">
+          <CardTitle className="text-base leading-snug">
+            {event.title || 'Event'}
+          </CardTitle>
+          {event.description ? (
+            <CardDescription className="line-clamp-2">
+              {event.description}
+            </CardDescription>
+          ) : null}
+          {timeLabel ? (
+            <p className="text-xs text-muted-foreground">{timeLabel}</p>
+          ) : null}
+          {roomCode ? (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="text-xs text-muted-foreground">Room code</span>
+              <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
+                {roomCode}
+              </code>
+              <Button
+                type="button"
+                variant="ghost"
+                size="xs"
+                onClick={() => void copyRoomCode()}
+              >
+                {copied ? 'Copied' : 'Copy'}
+              </Button>
+            </div>
+          ) : null}
         </div>
+        <div className="size-20 shrink-0 overflow-hidden rounded-md border bg-muted sm:size-24">
+          <img
+            src={thumb}
+            alt=""
+            className="size-full object-cover"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).src =
+                '/assets/imgs/logo-zenleader.png';
+            }}
+          />
+        </div>
+      </CardContent>
 
-        {variant === 'live' ? (
-          <div className="zl-row-actions">
-            <button
-              type="button"
-              className="zl-btn zl-btn-accent zl-btn-sm"
-              disabled={!canJoin || joiningCode !== null}
-              title={roomCode ? undefined : 'This event has no room yet'}
-              onClick={() => onJoin(roomCode)}
-            >
-              {busy ? 'Joining…' : 'Join live'}
-            </button>
-          </div>
-        ) : null}
-      </div>
-    </article>
+      {variant === 'live' ? (
+        <CardFooter className="px-4 pt-0">
+          <Button
+            type="button"
+            size="sm"
+            disabled={!canJoin || joiningCode !== null}
+            title={roomCode ? undefined : 'This event has no room yet'}
+            onClick={() => onJoin(roomCode)}
+          >
+            {busy ? 'Joining…' : 'Join live'}
+          </Button>
+        </CardFooter>
+      ) : null}
+    </Card>
   );
 }

@@ -1,13 +1,21 @@
 import { Link } from 'react-router-dom';
 
 import type { EnrichedEnrollment } from '../api/types';
+import { Badge } from '@/portal/components/ui/badge';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/portal/components/ui/card';
 
 type CourseEnrollmentCardProps = {
   item: EnrichedEnrollment;
 };
 
 /**
- * Compact enrollment row linking to the course-run live schedule.
+ * Enrollment card linking to the course-run live schedule (shadcn Card).
  *
  * @param item - enriched enrollment with course metadata
  */
@@ -23,52 +31,57 @@ export function CourseEnrollmentCard({ item }: CourseEnrollmentCardProps) {
   const isInstructor = role === 'INSTRUCTOR' || role === 'TEACHER';
 
   return (
-    <article className="zl-row">
+    <Card className="gap-0 overflow-hidden py-0 shadow-sm transition-colors hover:bg-accent/30">
       <Link
-        className="zl-row-main zl-row-link"
         to={`/my-courses/${enrollment.courseRunId}`}
+        className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <div className="zl-row-top">
-          <div className="zl-row-author-text">
-            <span className="zl-author-name">{title}</span>
-            <span className="zl-author-hint">
+        <CardHeader className="flex flex-row items-start justify-between gap-3 px-4 pt-4 pb-2">
+          <div className="min-w-0">
+            <CardTitle className="truncate text-base">{title}</CardTitle>
+            <CardDescription className="truncate">
               Run {courseRun.code || enrollment.courseRunCode || '—'}
               {enrollment.status ? ` · ${enrollment.status}` : ''}
-            </span>
+            </CardDescription>
           </div>
           {isInstructor ? (
-            <span className="zl-chip zl-chip-teaching">Teaching</span>
+            <Badge variant="secondary" className="shrink-0">
+              Teaching
+            </Badge>
           ) : null}
-        </div>
-        <div className="zl-row-body">
-          <div className="zl-row-copy">
+        </CardHeader>
+        <CardContent className="flex gap-4 px-4 pb-4">
+          <div className="min-w-0 flex-1 space-y-2">
             {isInstructor ? (
-              <p className="zl-card-time">
+              <p className="text-xs text-muted-foreground">
                 Open schedule to host live class rooms
               </p>
             ) : null}
             {progress !== null && !isInstructor ? (
-              <div className="zl-progress">
-                <div
-                  className="zl-progress-bar"
-                  style={{ width: `${progress}%` }}
-                />
-                <span className="zl-progress-label">{progress}%</span>
+              <div className="space-y-1">
+                <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-primary"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">{progress}%</p>
               </div>
             ) : null}
           </div>
-          <div className="zl-row-thumb">
+          <div className="size-16 shrink-0 overflow-hidden rounded-md border bg-muted sm:size-20">
             <img
               src={thumb}
               alt=""
+              className="size-full object-cover"
               onError={(e) => {
                 (e.currentTarget as HTMLImageElement).src =
                   '/assets/imgs/logo-zenleader.png';
               }}
             />
           </div>
-        </div>
+        </CardContent>
       </Link>
-    </article>
+    </Card>
   );
 }

@@ -9,9 +9,9 @@ type PortalLoadingProps = {
  */
 export function PortalLoading({ message }: PortalLoadingProps) {
   return (
-    <div className="zl-loading">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed bg-card px-6 py-14 text-center">
       <ZenBreathingLoader size={56} label={message} />
-      <span>{message}</span>
+      <span className="text-sm text-muted-foreground">{message}</span>
     </div>
   );
 }

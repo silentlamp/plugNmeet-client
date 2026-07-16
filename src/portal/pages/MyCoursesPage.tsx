@@ -11,6 +11,8 @@ import {
 } from '../api/zenleaderApi';
 import { CourseEnrollmentCard } from '../components/CourseEnrollmentCard';
 import { PortalLoading } from '../components/PortalLoading';
+import { Alert, AlertDescription } from '@/portal/components/ui/alert';
+import { Button } from '@/portal/components/ui/button';
 
 /**
  * Lists the signed-in user's enrollments with course metadata.
@@ -52,42 +54,45 @@ export function MyCoursesPage() {
   }, [load]);
 
   return (
-    <>
-      <div className="zl-page-head">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1>My courses</h1>
-          <p>Courses you enrolled in — open a run to see the live schedule</p>
+          <h1 className="text-2xl font-semibold tracking-tight">My courses</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Courses you enrolled in — open a run to see the live schedule
+          </p>
         </div>
-        <button
+        <Button
           type="button"
-          className="zl-btn zl-btn-ghost zl-btn-sm"
+          variant="outline"
+          size="sm"
           onClick={() => void load()}
           disabled={loading}
         >
           Refresh
-        </button>
+        </Button>
       </div>
 
       {error ? (
-        <div className="zl-alert" role="alert">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : null}
 
       {loading ? (
         <PortalLoading message="Loading your courses…" />
       ) : items.length === 0 ? (
-        <div className="zl-empty">
+        <p className="rounded-lg border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
           No enrollments yet. Purchase or enroll in a course in the ZenLeader
           app to see it here.
-        </div>
+        </p>
       ) : (
-        <div className="zl-list">
+        <div className="space-y-3">
           {items.map((item) => (
             <CourseEnrollmentCard key={item.enrollment.id} item={item} />
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 }

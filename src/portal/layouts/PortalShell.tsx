@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 
 import { getZenEmail } from '../auth/session';
 import {
@@ -9,6 +9,18 @@ import {
   redirectToMeeting,
   ZenApiError,
 } from '../api/zenleaderApi';
+import { Alert, AlertDescription } from '@/portal/components/ui/alert';
+import { Button } from '@/portal/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/portal/components/ui/dialog';
+import { Input } from '@/portal/components/ui/input';
+import { Label } from '@/portal/components/ui/label';
+import { cn } from '@/portal/lib/utils';
 
 type MeetDialogMode = 'join' | 'create';
 
@@ -45,18 +57,6 @@ export function PortalShell() {
     setMeetMode(mode);
     setSidebarOpen(false);
     setMeetOpen(true);
-  };
-
-  /**
-   * Closes the meet dialog and clears in-flight UI state.
-   */
-  const closeMeetDialog = () => {
-    if (busy) {
-      return;
-    }
-    setMeetOpen(false);
-    setMeetError(null);
-    setCreatedRoomCode(null);
   };
 
   /**
@@ -110,21 +110,6 @@ export function PortalShell() {
     }
   };
 
-  useEffect(() => {
-    if (!meetOpen) {
-      return;
-    }
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !busy) {
-        setMeetOpen(false);
-        setMeetError(null);
-        setCreatedRoomCode(null);
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [meetOpen, busy]);
-
   return (
     <div className={`zl-app${sidebarOpen ? ' zl-sidebar-open' : ''}`}>
       <button
@@ -175,14 +160,16 @@ export function PortalShell() {
 
         <div className="zl-sidebar-action">
           <p className="zl-sidebar-label">Quick action</p>
-          <button
+          <Button
             type="button"
-            className="zl-btn zl-btn-accent zl-btn-block zl-meet-cta"
+            className="w-full"
             onClick={() => openMeetDialog('join')}
           >
             Meet
-            <span className="zl-meet-cta-hint">Join or start</span>
-          </button>
+            <span className="text-xs font-normal opacity-80">
+              Join or start
+            </span>
+          </Button>
         </div>
 
         <div className="zl-sidebar-footer">
@@ -193,13 +180,14 @@ export function PortalShell() {
               <span title={email || undefined}>{email || 'Account'}</span>
             </div>
           </div>
-          <button
+          <Button
             type="button"
-            className="zl-btn zl-btn-ghost zl-btn-block"
+            variant="ghost"
+            className="w-full"
             onClick={() => void handleLogout()}
           >
             Sign out
-          </button>
+          </Button>
         </div>
       </aside>
 
@@ -219,95 +207,99 @@ export function PortalShell() {
             <strong>ZenLeader</strong>
             <span>Portal</span>
           </div>
-          <button
+          <Button
             type="button"
-            className="zl-btn zl-btn-accent zl-btn-sm"
+            size="sm"
             onClick={() => openMeetDialog('join')}
           >
             Meet
-          </button>
+          </Button>
         </header>
         <Outlet />
       </div>
 
-      {meetOpen ? (
-        <div className="zl-dialog-backdrop" role="presentation">
-          <button
-            type="button"
-            className="zl-dialog-scrim"
-            aria-label="Close meet dialog"
-            onClick={closeMeetDialog}
-          />
+      <Dialog
+        open={meetOpen}
+        onOpenChange={(open) => {
+          if (busy && !open) {
+            return;
+          }
+          setMeetOpen(open);
+          if (!open) {
+            setMeetError(null);
+            setCreatedRoomCode(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md" showCloseButton={!busy}>
+          <DialogHeader>
+            <DialogTitle>Meet</DialogTitle>
+            <DialogDescription>
+              Join with a room code or start a new meeting
+            </DialogDescription>
+          </DialogHeader>
+
           <div
-            className="zl-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="zl-meet-dialog-title"
+            className="grid grid-cols-2 gap-1 rounded-lg border bg-muted/40 p-1"
+            role="tablist"
+            aria-label="Meet mode"
           >
-            <div className="zl-dialog-head">
-              <div>
-                <h2 id="zl-meet-dialog-title">Meet</h2>
-                <p>Join with a room code or start a new meeting</p>
-              </div>
-              <button
-                type="button"
-                className="zl-dialog-close"
-                aria-label="Close"
-                onClick={closeMeetDialog}
-                disabled={busy}
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="zl-mode-tabs" role="tablist" aria-label="Meet mode">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={meetMode === 'join'}
-                className={`zl-mode-tab${meetMode === 'join' ? ' zl-mode-tab-active' : ''}`}
-                disabled={busy}
-                onClick={() => {
-                  setMeetMode('join');
-                  setMeetError(null);
-                  setCreatedRoomCode(null);
-                }}
-              >
-                Join with code
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={meetMode === 'create'}
-                className={`zl-mode-tab${meetMode === 'create' ? ' zl-mode-tab-active' : ''}`}
-                disabled={busy}
-                onClick={() => {
-                  setMeetMode('create');
-                  setMeetError(null);
-                  setCreatedRoomCode(null);
-                }}
-              >
-                New meeting
-              </button>
-            </div>
-
-            {meetMode === 'join' ? (
-              <JoinRoomForm
-                onJoin={(code) => void handleJoin(code)}
-                joining={busy}
-                error={meetError}
-              />
-            ) : (
-              <CreateMeetingForm
-                onCreate={(title) => void handleCreateInstant(title)}
-                creating={busy}
-                error={meetError}
-                createdRoomCode={createdRoomCode}
-              />
-            )}
+            <button
+              type="button"
+              role="tab"
+              aria-selected={meetMode === 'join'}
+              disabled={busy}
+              className={cn(
+                'rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                meetMode === 'join'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+              onClick={() => {
+                setMeetMode('join');
+                setMeetError(null);
+                setCreatedRoomCode(null);
+              }}
+            >
+              Join with code
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={meetMode === 'create'}
+              disabled={busy}
+              className={cn(
+                'rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                meetMode === 'create'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+              onClick={() => {
+                setMeetMode('create');
+                setMeetError(null);
+                setCreatedRoomCode(null);
+              }}
+            >
+              New meeting
+            </button>
           </div>
-        </div>
-      ) : null}
+
+          {meetMode === 'join' ? (
+            <JoinRoomForm
+              onJoin={(code) => void handleJoin(code)}
+              joining={busy}
+              error={meetError}
+            />
+          ) : (
+            <CreateMeetingForm
+              onCreate={(title) => void handleCreateInstant(title)}
+              creating={busy}
+              error={meetError}
+              createdRoomCode={createdRoomCode}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -336,19 +328,22 @@ export function JoinRoomForm({
   };
 
   return (
-    <form className="zl-join-form" onSubmit={handleSubmit}>
+    <form className="space-y-4" onSubmit={handleSubmit}>
       {error ? (
-        <div className="zl-alert" role="alert">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : null}
-      <p className="zl-form-hint">
+      <p className="text-sm text-muted-foreground">
         Enter the room code from an event or course session (for example{' '}
-        <code>abc-defg-hijk</code>).
+        <code className="rounded bg-muted px-1 font-mono text-xs">
+          abc-defg-hij
+        </code>
+        ).
       </p>
-      <div className="zl-field">
-        <label htmlFor="roomCode">Room code</label>
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="roomCode">Room code</Label>
+        <Input
           id="roomCode"
           name="roomCode"
           type="text"
@@ -359,13 +354,9 @@ export function JoinRoomForm({
           disabled={joining}
         />
       </div>
-      <button
-        className="zl-btn zl-btn-accent zl-btn-block"
-        type="submit"
-        disabled={joining}
-      >
+      <Button className="w-full" type="submit" disabled={joining}>
         {joining ? 'Joining…' : 'Join meeting'}
-      </button>
+      </Button>
     </form>
   );
 }
@@ -397,25 +388,27 @@ export function CreateMeetingForm({
   };
 
   return (
-    <form className="zl-join-form" onSubmit={handleSubmit}>
+    <form className="space-y-4" onSubmit={handleSubmit}>
       {error ? (
-        <div className="zl-alert" role="alert">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : null}
       {createdRoomCode ? (
-        <div className="zl-alert zl-alert-success" role="status">
-          Room code: <strong>{createdRoomCode}</strong> — opening meet…
-        </div>
+        <Alert>
+          <AlertDescription>
+            Room code: <strong>{createdRoomCode}</strong> — opening meet…
+          </AlertDescription>
+        </Alert>
       ) : null}
-      <p className="zl-form-hint">
+      <p className="text-sm text-muted-foreground">
         Start a meeting that is not linked to an event. You become the host;
         guests who join with your room code wait in the waiting room until you
         approve them.
       </p>
-      <div className="zl-field">
-        <label htmlFor="meetingTitle">Meeting title (optional)</label>
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="meetingTitle">Meeting title (optional)</Label>
+        <Input
           id="meetingTitle"
           name="title"
           type="text"
@@ -425,13 +418,9 @@ export function CreateMeetingForm({
           disabled={creating}
         />
       </div>
-      <button
-        className="zl-btn zl-btn-accent zl-btn-block"
-        type="submit"
-        disabled={creating}
-      >
+      <Button className="w-full" type="submit" disabled={creating}>
         {creating ? 'Starting…' : 'Start meeting'}
-      </button>
+      </Button>
     </form>
   );
 }

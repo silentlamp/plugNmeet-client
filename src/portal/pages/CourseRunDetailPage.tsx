@@ -21,6 +21,9 @@ import {
 import { PortalLoading } from '../components/PortalLoading';
 import { SessionRow } from '../components/SessionRow';
 import { partitionSessions } from '../utils/sessionHelpers';
+import { Alert, AlertDescription } from '@/portal/components/ui/alert';
+import { Badge } from '@/portal/components/ui/badge';
+import { Button } from '@/portal/components/ui/button';
 
 /**
  * Returns true when the enrollment role is the assigned course-run instructor.
@@ -113,65 +116,68 @@ export function CourseRunDetailPage() {
   };
 
   return (
-    <>
-      <div className="zl-page-head">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <Link className="zl-back-link" to="/my-courses">
-            ← My courses
-          </Link>
-          <h1>{course?.title || courseRun?.code || 'Course schedule'}</h1>
-          <p>
+          <Button variant="ghost" size="sm" className="mb-2 -ml-2 px-2" asChild>
+            <Link to="/my-courses">← My courses</Link>
+          </Button>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {course?.title || courseRun?.code || 'Course schedule'}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             {isInstructor
               ? 'You are the assigned instructor — host live rooms for this run'
               : 'Live sessions for this course run'}
           </p>
         </div>
-        <div className="zl-page-head-actions">
-          {isInstructor ? (
-            <span className="zl-chip zl-chip-teaching">Teaching</span>
-          ) : null}
-          <button
+        <div className="flex flex-wrap items-center gap-2">
+          {isInstructor ? <Badge variant="secondary">Teaching</Badge> : null}
+          <Button
             type="button"
-            className="zl-btn zl-btn-ghost zl-btn-sm"
+            variant="outline"
+            size="sm"
             onClick={() => void load()}
             disabled={loading}
           >
             Refresh
-          </button>
+          </Button>
         </div>
       </div>
 
       {error ? (
-        <div className="zl-alert" role="alert">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : null}
 
       {loading ? (
         <PortalLoading message="Loading schedule…" />
       ) : (
         <>
-          <section className="zl-section">
-            <div className="zl-section-head">
+          <section className="space-y-3">
+            <div className="flex items-start justify-between gap-3">
               <div>
-                <h2>Live now</h2>
-                <p>
+                <h2 className="text-lg font-semibold">Live now</h2>
+                <p className="text-sm text-muted-foreground">
                   {isInstructor
                     ? 'Open the room as host (waiting-room approve learners)'
                     : 'Sessions you can join right now'}
                 </p>
               </div>
               {live.length > 0 ? (
-                <span className="zl-badge-live">
-                  <span className="zl-live-dot" aria-hidden />
+                <Badge className="gap-1.5 bg-destructive text-white hover:bg-destructive">
+                  <span className="size-1.5 animate-pulse rounded-full bg-white" />
                   {live.length} live
-                </span>
+                </Badge>
               ) : null}
             </div>
             {live.length === 0 ? (
-              <div className="zl-empty">No live sessions right now.</div>
+              <p className="rounded-lg border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
+                No live sessions right now.
+              </p>
             ) : (
-              <div className="zl-list">
+              <div className="space-y-3">
                 {live.map((session) => (
                   <SessionRow
                     key={session.id}
@@ -186,22 +192,24 @@ export function CourseRunDetailPage() {
             )}
           </section>
 
-          <section className="zl-section">
-            <div className="zl-section-head">
+          <section className="space-y-3">
+            <div className="flex items-start justify-between gap-3">
               <div>
-                <h2>Upcoming</h2>
-                <p>
+                <h2 className="text-lg font-semibold">Upcoming</h2>
+                <p className="text-sm text-muted-foreground">
                   {isInstructor
                     ? 'You can start a room before the scheduled time'
                     : 'Scheduled live sessions'}
                 </p>
               </div>
-              <span className="zl-count-chip">{upcoming.length}</span>
+              <Badge variant="secondary">{upcoming.length}</Badge>
             </div>
             {upcoming.length === 0 ? (
-              <div className="zl-empty">No upcoming sessions.</div>
+              <p className="rounded-lg border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
+                No upcoming sessions.
+              </p>
             ) : (
-              <div className="zl-list">
+              <div className="space-y-3">
                 {upcoming.map((session) => (
                   <SessionRow
                     key={session.id}
@@ -216,20 +224,22 @@ export function CourseRunDetailPage() {
             )}
           </section>
 
-          <section className="zl-section zl-section-muted">
+          <section className="space-y-3">
             <details>
-              <summary className="zl-section-head zl-summary">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg border bg-card px-4 py-3">
                 <div>
-                  <h2>Ended</h2>
-                  <p>Past sessions</p>
+                  <h2 className="text-lg font-semibold">Ended</h2>
+                  <p className="text-sm text-muted-foreground">Past sessions</p>
                 </div>
-                <span className="zl-count-chip">{ended.length}</span>
+                <Badge variant="secondary">{ended.length}</Badge>
               </summary>
-              {ended.length === 0 ? (
-                <div className="zl-empty">No ended sessions yet.</div>
-              ) : (
-                <div className="zl-list zl-list-ended">
-                  {ended.map((session) => (
+              <div className="mt-3 space-y-3">
+                {ended.length === 0 ? (
+                  <p className="rounded-lg border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
+                    No ended sessions yet.
+                  </p>
+                ) : (
+                  ended.map((session) => (
                     <SessionRow
                       key={session.id}
                       session={session}
@@ -238,13 +248,13 @@ export function CourseRunDetailPage() {
                       joiningId={joiningId}
                       onJoin={(s) => void joinSession(s)}
                     />
-                  ))}
-                </div>
-              )}
+                  ))
+                )}
+              </div>
             </details>
           </section>
         </>
       )}
-    </>
+    </div>
   );
 }

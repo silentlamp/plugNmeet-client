@@ -8,6 +8,15 @@ import {
 } from '../api/zenleaderApi';
 import { ZenBreathingLoader } from '../../components/extra-pages/ZenBreathingLoader';
 import { ZENLEADER_ROOM_CODE_RE } from '../../helpers/utils';
+import { Button } from '@/portal/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/portal/components/ui/card';
 
 /**
  * Auth-gated page that exchanges a room code for a meet token and redirects
@@ -55,30 +64,44 @@ export function JoinMeetingPage() {
 
   if (error) {
     return (
-      <div className="zl-join-page">
-        <div className="zl-join-card">
-          <h1>Could not join meeting</h1>
-          <p>{error}</p>
-          <p className="zl-join-code">
-            Room code: <code>{roomCode || '—'}</code>
-          </p>
-          <Link to="/my-courses" className="zl-btn zl-btn-primary">
-            Back to my courses
-          </Link>
-        </div>
+      <div className="flex min-h-[60vh] items-center justify-center p-6">
+        <Card className="w-full max-w-md text-center">
+          <CardHeader>
+            <CardTitle>Could not join meeting</CardTitle>
+            <CardDescription>{error}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Room code:{' '}
+              <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
+                {roomCode || '—'}
+              </code>
+            </p>
+          </CardContent>
+          <CardFooter className="justify-center">
+            <Button asChild>
+              <Link to="/my-courses">Back to my courses</Link>
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="zl-join-page">
-      <div className="zl-join-card zl-join-card--loading">
-        <ZenBreathingLoader size={64} label="Joining meeting" />
-        <h1>Joining meeting…</h1>
-        <p>
-          Preparing your session for <code>{roomCode}</code>
-        </p>
-      </div>
+    <div className="flex min-h-[60vh] items-center justify-center p-6">
+      <Card className="w-full max-w-md items-center py-10 text-center">
+        <CardHeader className="items-center">
+          <ZenBreathingLoader size={64} label="Joining meeting" />
+          <CardTitle className="mt-4">Joining meeting…</CardTitle>
+          <CardDescription>
+            Preparing your session for{' '}
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
+              {roomCode}
+            </code>
+          </CardDescription>
+        </CardHeader>
+      </Card>
     </div>
   );
 }
