@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type { EventResponse } from '../api/types';
@@ -18,9 +12,6 @@ import {
 import { EventCard } from '../components/EventCard';
 import { PortalLoading } from '../components/PortalLoading';
 import { partitionEvents } from '../utils/eventHelpers';
-import { Alert, AlertDescription } from '@/portal/components/ui/alert';
-import { Badge } from '@/portal/components/ui/badge';
-import { Button } from '@/portal/components/ui/button';
 
 const POLL_MS = 20_000;
 
@@ -97,98 +88,106 @@ export function EventsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <>
+      <div className="zl-page-head">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Saved events
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Events you saved — join when they go live
-          </p>
+          <h1>Saved events</h1>
+          <p>Events you saved — join when they go live</p>
         </div>
-        <Button
+        <button
           type="button"
-          variant="outline"
-          size="sm"
+          className="zl-btn zl-btn-ghost zl-btn-sm"
           onClick={() => void loadEvents()}
           disabled={loadingEvents}
         >
           Refresh
-        </Button>
+        </button>
       </div>
 
       {error ? (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <div className="zl-alert" role="alert">
+          {error}
+        </div>
       ) : null}
 
       {loadingEvents ? (
         <PortalLoading message="Loading your events…" />
       ) : (
         <>
-          <EventSection
-            id="live-now"
-            title="Live now"
-            subtitle="Sessions you can join right now"
-            badge={
-              live.length > 0 ? (
-                <Badge className="gap-1.5 bg-destructive text-white hover:bg-destructive">
-                  <span className="size-1.5 animate-pulse rounded-full bg-white" />
+          <section id="live-now" className="zl-section">
+            <div className="zl-section-head">
+              <div>
+                <h2>Live now</h2>
+                <p>Sessions you can join right now</p>
+              </div>
+              {live.length > 0 ? (
+                <span className="zl-badge-live">
+                  <span className="zl-live-dot" aria-hidden />
                   {live.length} live
-                </Badge>
-              ) : null
-            }
-            empty="No live sessions right now. Check Upcoming below."
-          >
-            {live.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                variant="live"
-                joiningCode={joiningCode}
-                onJoin={(code) => void joinRoom(code)}
-              />
-            ))}
-          </EventSection>
+                </span>
+              ) : null}
+            </div>
+            {live.length === 0 ? (
+              <div className="zl-empty">
+                No live sessions right now. Check Upcoming below.
+              </div>
+            ) : (
+              <div className="zl-list">
+                {live.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    variant="live"
+                    joiningCode={joiningCode}
+                    onJoin={(code) => void joinRoom(code)}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
 
-          <EventSection
-            id="upcoming"
-            title="Upcoming"
-            subtitle="Saved events that have not started yet"
-            count={upcoming.length}
-            empty="No upcoming saved events. Mark events as interested in the ZenLeader app to see them here."
-          >
-            {upcoming.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                variant="upcoming"
-                joiningCode={joiningCode}
-                onJoin={(code) => void joinRoom(code)}
-              />
-            ))}
-          </EventSection>
+          <section id="upcoming" className="zl-section">
+            <div className="zl-section-head">
+              <div>
+                <h2>Upcoming</h2>
+                <p>Saved events that have not started yet</p>
+              </div>
+              <span className="zl-count-chip">{upcoming.length}</span>
+            </div>
+            {upcoming.length === 0 ? (
+              <div className="zl-empty">
+                No upcoming saved events. Mark events as interested in the
+                ZenLeader app to see them here.
+              </div>
+            ) : (
+              <div className="zl-list">
+                {upcoming.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    variant="upcoming"
+                    joiningCode={joiningCode}
+                    onJoin={(code) => void joinRoom(code)}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
 
-          <section id="ended" className="space-y-3">
+          <section id="ended" className="zl-section zl-section-muted">
             <details>
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg border bg-card px-4 py-3">
+              <summary className="zl-section-head zl-summary">
                 <div>
-                  <h2 className="text-lg font-semibold">Ended</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Past events you were interested in
-                  </p>
+                  <h2>Ended</h2>
+                  <p>Past events you were interested in</p>
                 </div>
-                <Badge variant="secondary">{ended.length}</Badge>
+                <span className="zl-count-chip">{ended.length}</span>
               </summary>
-              <div className="mt-3 space-y-3">
-                {ended.length === 0 ? (
-                  <p className="rounded-lg border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-                    No ended events yet.
-                  </p>
-                ) : (
-                  ended.map((event) => (
+              {ended.length === 0 ? (
+                <div className="zl-empty">No ended events yet.</div>
+              ) : (
+                <div className="zl-list zl-list-ended">
+                  {ended.map((event) => (
                     <EventCard
                       key={event.id}
                       event={event}
@@ -196,59 +195,13 @@ export function EventsPage() {
                       joiningCode={joiningCode}
                       onJoin={(code) => void joinRoom(code)}
                     />
-                  ))
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
             </details>
           </section>
         </>
       )}
-    </div>
-  );
-}
-
-/**
- * Shared section chrome for Saved events lists.
- */
-function EventSection({
-  id,
-  title,
-  subtitle,
-  count,
-  badge,
-  empty,
-  children,
-}: {
-  id: string;
-  title: string;
-  subtitle: string;
-  count?: number;
-  badge?: ReactNode;
-  empty: ReactNode;
-  children: ReactNode;
-}) {
-  const items = Array.isArray(children) ? children : [children];
-  const hasItems = items.filter(Boolean).length > 0;
-
-  return (
-    <section id={id} className="space-y-3">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <p className="text-sm text-muted-foreground">{subtitle}</p>
-        </div>
-        {badge}
-        {count != null && !badge ? (
-          <Badge variant="secondary">{count}</Badge>
-        ) : null}
-      </div>
-      {!hasItems ? (
-        <p className="rounded-lg border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-          {empty}
-        </p>
-      ) : (
-        <div className="space-y-3">{children}</div>
-      )}
-    </section>
+    </>
   );
 }

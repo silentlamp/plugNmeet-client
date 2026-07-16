@@ -1,12 +1,5 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { X } from 'lucide-react';
 
 import type { EventResponse } from '../api/types';
 import {
@@ -19,16 +12,6 @@ import {
 import { EventCard } from '../components/EventCard';
 import { PortalLoading } from '../components/PortalLoading';
 import { partitionEvents } from '../utils/eventHelpers';
-import { Alert, AlertDescription } from '@/portal/components/ui/alert';
-import { Badge } from '@/portal/components/ui/badge';
-import { Button } from '@/portal/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/portal/components/ui/card';
 
 const POLL_MS = 20_000;
 
@@ -141,191 +124,193 @@ export function MyEventsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <>
+      <div className="zl-page-head">
         <div>
-          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-            Hosting
-          </p>
-          <h1 className="text-2xl font-semibold tracking-tight">My events</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Create, publish, and host sessions with a shareable room code.
-          </p>
+          <p className="zl-page-eyebrow">Hosting</p>
+          <h1>My events</h1>
+          <p>Create, publish, and host sessions with a shareable room code.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button size="sm" asChild>
-            <Link to="/my-events/create">Create event</Link>
-          </Button>
-          <Button
+        <div className="zl-page-head-actions">
+          <Link
+            className="zl-btn zl-btn-accent zl-btn-sm"
+            to="/my-events/create"
+          >
+            Create event
+          </Link>
+          <button
             type="button"
-            variant="outline"
-            size="sm"
+            className="zl-btn zl-btn-ghost zl-btn-sm"
             onClick={() => void loadEvents()}
             disabled={loadingEvents}
             aria-label="Refresh events"
           >
             Refresh
-          </Button>
+          </button>
         </div>
       </div>
 
       {notice ? (
-        <Alert className="relative pr-10">
-          <AlertDescription>{notice}</AlertDescription>
-          <Button
+        <div className="zl-alert zl-alert-success" role="status">
+          {notice}
+          <button
             type="button"
-            variant="ghost"
-            size="icon-xs"
-            className="absolute top-2 right-2"
+            className="zl-alert-dismiss"
             aria-label="Dismiss"
             onClick={() => setNotice(null)}
           >
-            <X />
-          </Button>
-        </Alert>
+            ×
+          </button>
+        </div>
       ) : null}
 
       {error ? (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <div className="zl-alert" role="alert">
+          {error}
+        </div>
       ) : null}
 
       {loadingEvents ? (
         <PortalLoading message="Loading your events…" />
       ) : isEmptyHub ? (
-        <Card className="items-center py-10 text-center">
-          <CardHeader className="items-center">
-            <img
-              src="/assets/imgs/logo-zenleader.png"
-              alt=""
-              className="mb-2 size-14 object-contain opacity-80"
-            />
-            <CardTitle>Host your first event</CardTitle>
-            <CardDescription className="max-w-md">
-              Publish a session, share the room code, and join from Meet when it
-              goes live.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild>
-              <Link to="/my-events/create">Create event</Link>
-            </Button>
-          </CardContent>
-        </Card>
+        <section className="zl-empty-hero" aria-label="No events yet">
+          <div className="zl-empty-hero-mark" aria-hidden>
+            <img src="/assets/imgs/logo-zenleader.png" alt="" />
+          </div>
+          <h2>Host your first event</h2>
+          <p>
+            Publish a session, share the room code, and join from Meet when it
+            goes live.
+          </p>
+          <Link className="zl-btn zl-btn-accent" to="/my-events/create">
+            Create event
+          </Link>
+        </section>
       ) : (
         <>
-          <div
-            className="grid grid-cols-2 gap-3 sm:grid-cols-4"
-            aria-label="Event summary"
-          >
-            {[
-              { label: 'Live', value: live.length },
-              { label: 'Upcoming', value: upcoming.length },
-              { label: 'Drafts', value: drafts.length },
-              { label: 'Ended', value: ended.length },
-            ].map((stat) => (
-              <Card key={stat.label} className="gap-1 py-4 shadow-none">
-                <CardContent className="px-4">
-                  <p className="text-2xl font-semibold">{stat.value}</p>
-                  <p className="text-xs text-muted-foreground">{stat.label}</p>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="zl-stat-strip" aria-label="Event summary">
+            <div className="zl-stat">
+              <strong>{live.length}</strong>
+              <span>Live</span>
+            </div>
+            <div className="zl-stat">
+              <strong>{upcoming.length}</strong>
+              <span>Upcoming</span>
+            </div>
+            <div className="zl-stat">
+              <strong>{drafts.length}</strong>
+              <span>Drafts</span>
+            </div>
+            <div className="zl-stat">
+              <strong>{ended.length}</strong>
+              <span>Ended</span>
+            </div>
           </div>
 
-          <EventSection
-            id="my-live-now"
-            title="Live now"
-            subtitle="Sessions you can join immediately"
-            badge={
-              live.length > 0 ? (
-                <Badge className="gap-1.5 bg-destructive text-white hover:bg-destructive">
-                  <span className="size-1.5 animate-pulse rounded-full bg-white" />
+          <section id="my-live-now" className="zl-section">
+            <div className="zl-section-head">
+              <div>
+                <h2>Live now</h2>
+                <p>Sessions you can join immediately</p>
+              </div>
+              {live.length > 0 ? (
+                <span className="zl-badge-live">
+                  <span className="zl-live-dot" aria-hidden />
                   {live.length} live
-                </Badge>
-              ) : null
-            }
-            empty="Nothing live right now."
-          >
-            {live.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                variant="live"
-                compactMeta
-                joiningCode={joiningCode}
-                onJoin={(code) => void joinRoom(code)}
-              />
-            ))}
-          </EventSection>
+                </span>
+              ) : null}
+            </div>
+            {live.length === 0 ? (
+              <div className="zl-empty zl-empty-compact">
+                Nothing live right now.
+              </div>
+            ) : (
+              <div className="zl-list">
+                {live.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    variant="live"
+                    compactMeta
+                    joiningCode={joiningCode}
+                    onJoin={(code) => void joinRoom(code)}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
 
-          <EventSection
-            id="my-upcoming"
-            title="Upcoming"
-            subtitle="Published events waiting to start"
-            count={upcoming.length}
-            empty={
-              <>
+          <section id="my-upcoming" className="zl-section">
+            <div className="zl-section-head">
+              <div>
+                <h2>Upcoming</h2>
+                <p>Published events waiting to start</p>
+              </div>
+              <span className="zl-count-chip">{upcoming.length}</span>
+            </div>
+            {upcoming.length === 0 ? (
+              <div className="zl-empty zl-empty-compact">
                 No upcoming published events.{' '}
-                <Link
-                  className="font-medium text-primary underline-offset-4 hover:underline"
-                  to="/my-events/create"
-                >
-                  Create one
-                </Link>
-              </>
-            }
-          >
-            {upcoming.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                variant="upcoming"
-                compactMeta
-                joiningCode={joiningCode}
-                onJoin={(code) => void joinRoom(code)}
-              />
-            ))}
-          </EventSection>
+                <Link to="/my-events/create">Create one</Link>
+              </div>
+            ) : (
+              <div className="zl-list">
+                {upcoming.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    variant="upcoming"
+                    compactMeta
+                    joiningCode={joiningCode}
+                    onJoin={(code) => void joinRoom(code)}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
 
-          <EventSection
-            id="my-drafts"
-            title="Drafts"
-            subtitle="Not published yet"
-            count={drafts.length}
-            empty="No drafts."
-          >
-            {drafts.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                variant="draft"
-                compactMeta
-                joiningCode={joiningCode}
-                onJoin={(code) => void joinRoom(code)}
-              />
-            ))}
-          </EventSection>
+          <section id="my-drafts" className="zl-section">
+            <div className="zl-section-head">
+              <div>
+                <h2>Drafts</h2>
+                <p>Not published yet</p>
+              </div>
+              <span className="zl-count-chip">{drafts.length}</span>
+            </div>
+            {drafts.length === 0 ? (
+              <div className="zl-empty zl-empty-compact">No drafts.</div>
+            ) : (
+              <div className="zl-list">
+                {drafts.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    variant="draft"
+                    compactMeta
+                    joiningCode={joiningCode}
+                    onJoin={(code) => void joinRoom(code)}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
 
-          <section id="my-ended" className="space-y-3">
-            <details className="group">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg border bg-card px-4 py-3">
+          <section id="my-ended" className="zl-section zl-section-muted">
+            <details>
+              <summary className="zl-section-head zl-summary">
                 <div>
-                  <h2 className="text-lg font-semibold">Ended</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Past events you hosted
-                  </p>
+                  <h2>Ended</h2>
+                  <p>Past events you hosted</p>
                 </div>
-                <Badge variant="secondary">{ended.length}</Badge>
+                <span className="zl-count-chip">{ended.length}</span>
               </summary>
-              <div className="mt-3 space-y-3">
-                {ended.length === 0 ? (
-                  <p className="rounded-lg border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-                    No ended events yet.
-                  </p>
-                ) : (
-                  ended.map((event) => (
+              {ended.length === 0 ? (
+                <div className="zl-empty zl-empty-compact">
+                  No ended events yet.
+                </div>
+              ) : (
+                <div className="zl-list zl-list-ended">
+                  {ended.map((event) => (
                     <EventCard
                       key={event.id}
                       event={event}
@@ -334,59 +319,13 @@ export function MyEventsPage() {
                       joiningCode={joiningCode}
                       onJoin={(code) => void joinRoom(code)}
                     />
-                  ))
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
             </details>
           </section>
         </>
       )}
-    </div>
-  );
-}
-
-/**
- * Shared section chrome for My events / Saved events lists.
- */
-function EventSection({
-  id,
-  title,
-  subtitle,
-  count,
-  badge,
-  empty,
-  children,
-}: {
-  id: string;
-  title: string;
-  subtitle: string;
-  count?: number;
-  badge?: ReactNode;
-  empty: ReactNode;
-  children: ReactNode;
-}) {
-  const items = Array.isArray(children) ? children : [children];
-  const hasItems = items.filter(Boolean).length > 0;
-
-  return (
-    <section id={id} className="space-y-3">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <p className="text-sm text-muted-foreground">{subtitle}</p>
-        </div>
-        {badge}
-        {count != null && !badge ? (
-          <Badge variant="secondary">{count}</Badge>
-        ) : null}
-      </div>
-      {!hasItems ? (
-        <p className="rounded-lg border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-          {empty}
-        </p>
-      ) : (
-        <div className="space-y-3">{children}</div>
-      )}
-    </section>
+    </>
   );
 }

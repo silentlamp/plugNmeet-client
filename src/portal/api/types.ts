@@ -43,17 +43,9 @@ export type MeetingTokenResponse = {
 export type CreateEventPayload = {
   title: string;
   description?: string;
-  thumbnailUrl?: string;
   startTime: string;
   endTime: string;
   publishImmediately?: boolean;
-};
-
-/** GET /api/v1/assets/presigned-upload */
-export type PresignedUploadResponse = {
-  uploadUrl: string;
-  downloadUrl: string;
-  key?: string;
 };
 
 /** POST /api/v1/meetings/instant */

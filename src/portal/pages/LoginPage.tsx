@@ -14,18 +14,6 @@ import {
   requestAppleAuthPayload,
   requestGoogleIdToken,
 } from '../auth/socialSignIn';
-import { Alert, AlertDescription } from '@/portal/components/ui/alert';
-import { Button } from '@/portal/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/portal/components/ui/card';
-import { Input } from '@/portal/components/ui/input';
-import { Label } from '@/portal/components/ui/label';
-import { Separator } from '@/portal/components/ui/separator';
 
 /**
  * ZenLeader sign-in form for the learner portal (password + Google/Apple).
@@ -100,100 +88,90 @@ export function LoginPage() {
 
   return (
     <div className="zl-shell">
-      <Card className="w-full max-w-md shadow-md">
-        <CardHeader className="items-center text-center">
-          <img
-            src="/assets/imgs/logo-zenleader.png"
-            alt="ZenLeader"
-            className="mb-2 size-14 object-contain"
-          />
-          <CardTitle className="text-xl">ZenLeader Meet</CardTitle>
-          <CardDescription>
+      <div className="zl-panel">
+        <div className="zl-brand">
+          <img src="/assets/imgs/logo-zenleader.png" alt="ZenLeader" />
+          <h1>ZenLeader Meet</h1>
+          <p>
             Sign in to open your courses, live schedule, or join a room on the
             web.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          {error ? (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : null}
+          </p>
+        </div>
 
-          {(showGoogle || showApple) && (
-            <div className="space-y-3">
-              {showGoogle ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  disabled={busy}
-                  onClick={() => void handleGoogle()}
-                >
-                  <GoogleMark />
-                  {socialBusy === 'google'
-                    ? 'Continuing with Google…'
-                    : 'Continue with Google'}
-                </Button>
-              ) : null}
-              {showApple ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  disabled={busy}
-                  onClick={() => void handleApple()}
-                >
-                  <AppleMark />
-                  {socialBusy === 'apple'
-                    ? 'Continuing with Apple…'
-                    : 'Continue with Apple'}
-                </Button>
-              ) : null}
-              <div className="relative py-1">
-                <Separator />
-                <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
-                  or
-                </span>
-              </div>
+        {error ? (
+          <div className="zl-alert" role="alert">
+            {error}
+          </div>
+        ) : null}
+
+        {(showGoogle || showApple) && (
+          <div className="zl-social">
+            {showGoogle ? (
+              <button
+                type="button"
+                className="zl-btn zl-btn-social zl-btn-block"
+                disabled={busy}
+                onClick={() => void handleGoogle()}
+              >
+                <GoogleMark />
+                {socialBusy === 'google'
+                  ? 'Continuing with Google…'
+                  : 'Continue with Google'}
+              </button>
+            ) : null}
+            {showApple ? (
+              <button
+                type="button"
+                className="zl-btn zl-btn-social zl-btn-apple zl-btn-block"
+                disabled={busy}
+                onClick={() => void handleApple()}
+              >
+                <AppleMark />
+                {socialBusy === 'apple'
+                  ? 'Continuing with Apple…'
+                  : 'Continue with Apple'}
+              </button>
+            ) : null}
+            <div className="zl-social-divider" role="separator">
+              <span>or</span>
             </div>
-          )}
+          </div>
+        )}
 
-          <form
-            className="space-y-4"
-            onSubmit={(e) => void handleSubmit(e)}
-            autoComplete="on"
+        <form onSubmit={(e) => void handleSubmit(e)} autoComplete="on">
+          <div className="zl-field">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              autoComplete="username"
+              placeholder="you@example.com"
+              disabled={busy}
+            />
+          </div>
+          <div className="zl-field">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              autoComplete="current-password"
+              placeholder="••••••••"
+              disabled={busy}
+            />
+          </div>
+          <button
+            className="zl-btn zl-btn-primary"
+            type="submit"
+            disabled={busy}
           >
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                required
-                autoComplete="username"
-                placeholder="you@example.com"
-                disabled={busy}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                required
-                autoComplete="current-password"
-                placeholder="••••••••"
-                disabled={busy}
-              />
-            </div>
-            <Button className="w-full" type="submit" disabled={busy}>
-              {submitting ? 'Signing in…' : 'Sign in'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+            {submitting ? 'Signing in…' : 'Sign in'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
