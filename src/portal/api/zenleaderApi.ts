@@ -16,6 +16,7 @@ import type {
   EnrollmentResponse,
   EventResponse,
   MeetingTokenResponse,
+  PresignedUploadResponse,
   TokenResponse,
   UserMeResponse,
 } from './types';
@@ -387,7 +388,7 @@ export async function fetchMyCreated(): Promise<EventResponse[]> {
 /**
  * Creates an event owned by the authenticated user (auto room code + live session).
  *
- * @param payload - title, schedule, and publish flag
+ * @param payload - title, schedule, optional thumbnail, and publish flag
  */
 export async function createEvent(
   payload: CreateEventPayload,
@@ -396,6 +397,59 @@ export async function createEvent(
     method: 'POST',
     body: payload,
   });
+}
+
+/**
+ * Requests a presigned PUT URL for uploading an asset (authenticated learner).
+ *
+ * @param fileName - original file name
+ * @param contentType - MIME type
+ */
+export async function getPresignedUpload(
+  fileName: string,
+  contentType: string,
+): Promise<PresignedUploadResponse> {
+  const q = new URLSearchParams({
+    fileName,
+    contentType,
+  });
+  return apiFetch<PresignedUploadResponse>(
+    `/api/v1/assets/presigned-upload?${q.toString()}`,
+  );
+}
+
+/**
+ * Uploads a file via presigned PUT and returns the public download URL payload.
+ *
+ * @param file - image selected by the user
+ */
+export async function uploadViaPresigned(
+  file: File,
+): Promise<PresignedUploadResponse> {
+  const presigned = await getPresignedUpload(
+    file.name,
+    file.type || 'application/octet-stream',
+  );
+  if (!presigned.uploadUrl) {
+    throw new ZenApiError('Presigned upload URL was not returned.', 500);
+  }
+  const response = await fetch(presigned.uploadUrl, {
+    method: 'PUT',
+    body: file,
+    headers: {
+      'Content-Type': file.type || 'application/octet-stream',
+    },
+  });
+  if (!response.ok) {
+    throw new ZenApiError('Image upload failed.', response.status);
+  }
+  if (!presigned.downloadUrl) {
+    throw new ZenApiError(
+      'Upload succeeded but no download URL was returned.',
+      500,
+    );
+  }
+  return presigned;
 }
 
 /**

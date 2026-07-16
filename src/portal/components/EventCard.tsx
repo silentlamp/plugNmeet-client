@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { EventResponse } from '../api/types';
 import {
@@ -7,6 +7,8 @@ import {
   formatEventTime,
   formatStartLabel,
 } from '../utils/eventHelpers';
+
+const FALLBACK_THUMB = '/assets/imgs/logo-zenleader.png';
 
 type EventCardVariant = 'live' | 'upcoming' | 'ended' | 'draft';
 
@@ -24,11 +26,14 @@ type EventCardProps = {
 /**
  * Compact Dojo-style horizontal event row for the meet hub.
  *
+ * Uses `event.thumbnailUrl` when present; falls back to the ZenLeader logo.
+ *
  * @param event - event payload
  * @param variant - live | upcoming | ended | draft
  * @param joiningCode - room code currently joining, if any
  * @param onJoin - join handler
  * @param relationHint - optional author-line hint (saved vs created)
+ * @param compactMeta - hide redundant creator hints on My events
  */
 export function EventCard({
   event,
@@ -40,10 +45,19 @@ export function EventCard({
 }: EventCardProps) {
   const roomCode = extractRoomCode(event);
   const busy = joiningCode === roomCode && Boolean(roomCode);
-  const thumb = event.thumbnailUrl || '/assets/imgs/logo-zenleader.png';
+  const thumbnailUrl = String(event.thumbnailUrl || '').trim();
+  const hasThumbnail = Boolean(thumbnailUrl);
+  const [thumbSrc, setThumbSrc] = useState(
+    () => thumbnailUrl || FALLBACK_THUMB,
+  );
   const author = eventAuthorName(event);
   const canJoin = variant === 'live' && Boolean(roomCode);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    setThumbSrc(thumbnailUrl || FALLBACK_THUMB);
+  }, [thumbnailUrl]);
+
   const hint =
     relationHint ||
     (compactMeta
@@ -146,14 +160,13 @@ export function EventCard({
             ) : null}
           </div>
 
-          <div className="zl-row-thumb">
+          <div
+            className={`zl-row-thumb${hasThumbnail && thumbSrc === thumbnailUrl ? ' zl-row-thumb--photo' : ' zl-row-thumb--fallback'}`}
+          >
             <img
-              src={thumb}
-              alt=""
-              onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src =
-                  '/assets/imgs/logo-zenleader.png';
-              }}
+              src={thumbSrc}
+              alt={hasThumbnail ? event.title || 'Event cover' : ''}
+              onError={() => setThumbSrc(FALLBACK_THUMB)}
             />
           </div>
         </div>

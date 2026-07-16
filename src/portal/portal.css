@@ -1019,6 +1019,11 @@ body {
   border-radius: 12px;
   overflow: hidden;
   background: #e8edf4;
+  border: 1px solid var(--zl-border);
+}
+
+.zl-row-thumb--photo {
+  background: #0f172a;
 }
 
 .zl-row-thumb img {
@@ -1026,6 +1031,12 @@ body {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.zl-row-thumb--fallback img {
+  object-fit: contain;
+  padding: 10px;
+  background: #fff;
 }
 
 .zl-row-ended .zl-row-thumb {
@@ -1441,6 +1452,43 @@ body {
   border-radius: 12px;
   padding: 12px 14px;
   font: inherit;
+}
+
+.zl-file-input {
+  display: block;
+  width: 100%;
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--zl-navy);
+}
+
+.zl-form-hint-tight {
+  margin: 6px 0 0;
+}
+
+.zl-thumb-preview {
+  margin-top: 12px;
+  border: 1px solid var(--zl-border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #eef3f8;
+}
+
+.zl-thumb-preview img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: #0f172a;
+}
+
+.zl-thumb-preview-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 8px 10px;
+  background: var(--zl-card);
+  border-top: 1px solid var(--zl-border);
 }
 
 @media (max-width: 640px) {

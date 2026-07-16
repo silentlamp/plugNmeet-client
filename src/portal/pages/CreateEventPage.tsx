@@ -1,7 +1,20 @@
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { createEvent, logout, ZenApiError } from '../api/zenleaderApi';
+import {
+  createEvent,
+  logout,
+  uploadViaPresigned,
+  ZenApiError,
+} from '../api/zenleaderApi';
+
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const ACCEPTED_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+];
 
 /**
  * Builds an ISO datetime string from a datetime-local input value (local → UTC).
@@ -26,27 +39,81 @@ function defaultScheduleInputs(): { start: string; end: string } {
 }
 
 /**
- * Portal page to create a ZenLeader event (auto room code + live session).
+ * Portal page to create a ZenLeader event (cover image + auto room code).
  */
 export function CreateEventPage() {
   const navigate = useNavigate();
   const defaults = useMemo(() => defaultScheduleInputs(), []);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startTime, setStartTime] = useState(defaults.start);
   const [endTime, setEndTime] = useState(defaults.end);
   const [publishImmediately, setPublishImmediately] = useState(true);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!thumbnailFile) {
+      setThumbnailPreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(thumbnailFile);
+    setThumbnailPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [thumbnailFile]);
+
+  const clearThumbnail = () => {
+    setThumbnailFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const onPickThumbnail = (file: File | undefined) => {
+    setError(null);
+    if (!file) {
+      return;
+    }
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      setError('Please choose a JPG, PNG, WebP, or GIF image.');
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      setError('Image must be 5 MB or smaller.');
+      return;
+    }
+    setThumbnailFile(file);
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
+
+    const startMs = Date.parse(startTime);
+    const endMs = Date.parse(endTime);
+    if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) {
+      setError('Please choose a valid start and end time.');
+      return;
+    }
+    if (endMs <= startMs) {
+      setError('End time must be after start time.');
+      return;
+    }
+
     setSaving(true);
     try {
+      let thumbnailUrl: string | undefined;
+      if (thumbnailFile) {
+        const uploaded = await uploadViaPresigned(thumbnailFile);
+        thumbnailUrl = uploaded.downloadUrl;
+      }
       const created = await createEvent({
         title: title.trim(),
         description: description.trim() || undefined,
+        thumbnailUrl,
         startTime: toIsoFromLocalInput(startTime),
         endTime: toIsoFromLocalInput(endTime),
         publishImmediately,
@@ -111,6 +178,46 @@ export function CreateEventPage() {
             disabled={saving}
           />
         </div>
+
+        <div className="zl-field">
+          <label htmlFor="event-thumbnail">Cover image</label>
+          <input
+            ref={fileInputRef}
+            id="event-thumbnail"
+            type="file"
+            accept={ACCEPTED_IMAGE_TYPES.join(',')}
+            className="zl-file-input"
+            disabled={saving}
+            onChange={(e) => onPickThumbnail(e.target.files?.[0])}
+          />
+          <p className="zl-form-hint zl-form-hint-tight">
+            Optional. JPG, PNG, WebP, or GIF · max 5 MB
+          </p>
+          {thumbnailPreview ? (
+            <div className="zl-thumb-preview">
+              <img src={thumbnailPreview} alt="Cover preview" />
+              <div className="zl-thumb-preview-actions">
+                <button
+                  type="button"
+                  className="zl-btn zl-btn-ghost zl-btn-xs"
+                  disabled={saving}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  Change
+                </button>
+                <button
+                  type="button"
+                  className="zl-btn zl-btn-ghost zl-btn-xs"
+                  disabled={saving}
+                  onClick={clearThumbnail}
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
         <div className="zl-field-grid">
           <div className="zl-field">
             <label htmlFor="event-start">Starts</label>
@@ -163,7 +270,11 @@ export function CreateEventPage() {
             className="zl-btn zl-btn-accent"
             disabled={saving || !title.trim()}
           >
-            {saving ? 'Creating…' : 'Create event'}
+            {saving
+              ? thumbnailFile
+                ? 'Uploading…'
+                : 'Creating…'
+              : 'Create event'}
           </button>
         </div>
       </form>
