@@ -17,6 +17,8 @@ type EventCardProps = {
   onJoin: (roomCode: string) => void;
   /** Secondary hint under the author name (defaults by variant). */
   relationHint?: string;
+  /** Hide redundant "Created by you" style hints on the My events hub. */
+  compactMeta?: boolean;
 };
 
 /**
@@ -34,6 +36,7 @@ export function EventCard({
   joiningCode,
   onJoin,
   relationHint,
+  compactMeta = false,
 }: EventCardProps) {
   const roomCode = extractRoomCode(event);
   const busy = joiningCode === roomCode && Boolean(roomCode);
@@ -43,7 +46,17 @@ export function EventCard({
   const [copied, setCopied] = useState(false);
   const hint =
     relationHint ||
-    (variant === 'draft' ? 'Created by you · draft' : 'Saved · interested');
+    (compactMeta
+      ? variant === 'draft'
+        ? 'Draft — not published'
+        : variant === 'live'
+          ? 'Hosting now'
+          : variant === 'ended'
+            ? 'Hosted by you'
+            : 'Published'
+      : variant === 'draft'
+        ? 'Created by you · draft'
+        : 'Saved · interested');
 
   const timeLabel =
     variant === 'ended'

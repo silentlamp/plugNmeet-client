@@ -14,6 +14,9 @@ type MeetDialogMode = 'join' | 'create';
 
 /**
  * Authenticated portal chrome: sidebar nav + main outlet.
+ *
+ * Meet (join / instant meeting) is a global action — one primary entry in the
+ * sidebar, plus a compact topbar control on small screens when the drawer is closed.
  */
 export function PortalShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -140,7 +143,7 @@ export function PortalShell() {
           </div>
         </div>
 
-        <nav className="zl-sidebar-nav">
+        <nav className="zl-sidebar-nav" aria-label="Portal pages">
           <NavLink
             to="/my-courses"
             className={({ isActive }) =>
@@ -168,14 +171,19 @@ export function PortalShell() {
           >
             My events
           </NavLink>
+        </nav>
+
+        <div className="zl-sidebar-action">
+          <p className="zl-sidebar-label">Quick action</p>
           <button
             type="button"
-            className="zl-nav-item zl-nav-btn"
+            className="zl-btn zl-btn-accent zl-btn-block zl-meet-cta"
             onClick={() => openMeetDialog('join')}
           >
             Meet
+            <span className="zl-meet-cta-hint">Join or start</span>
           </button>
-        </nav>
+        </div>
 
         <div className="zl-sidebar-footer">
           <div className="zl-user-chip">
@@ -196,7 +204,7 @@ export function PortalShell() {
       </aside>
 
       <div className="zl-main">
-        <header className="zl-topbar">
+        <header className="zl-topbar zl-topbar-mobile">
           <button
             type="button"
             className="zl-menu-btn"
@@ -207,7 +215,10 @@ export function PortalShell() {
             <span />
             <span />
           </button>
-          <div className="zl-topbar-spacer" />
+          <div className="zl-topbar-brand">
+            <strong>ZenLeader</strong>
+            <span>Portal</span>
+          </div>
           <button
             type="button"
             className="zl-btn zl-btn-accent zl-btn-sm"
@@ -236,7 +247,7 @@ export function PortalShell() {
             <div className="zl-dialog-head">
               <div>
                 <h2 id="zl-meet-dialog-title">Meet</h2>
-                <p>Join an event room or start a new meeting</p>
+                <p>Join with a room code or start a new meeting</p>
               </div>
               <button
                 type="button"

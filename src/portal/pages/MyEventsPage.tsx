@@ -14,7 +14,6 @@ import { PortalLoading } from '../components/PortalLoading';
 import { partitionEvents } from '../utils/eventHelpers';
 
 const POLL_MS = 20_000;
-const CREATED_HINT = 'Created by you';
 
 /**
  * Returns true when the event is still a draft (not published).
@@ -41,7 +40,7 @@ export function MyEventsPage() {
     const state = location.state as { createdRoomCode?: string | null } | null;
     if (state?.createdRoomCode) {
       setNotice(
-        `Event created. Room code: ${state.createdRoomCode} — share it so others can join from Meet.`,
+        `Event created. Room code: ${state.createdRoomCode} — share it so guests can join from Meet.`,
       );
       navigate(location.pathname, { replace: true, state: null });
     }
@@ -101,6 +100,13 @@ export function MyEventsPage() {
     return { drafts: draftList, ...buckets };
   }, [events]);
 
+  const isEmptyHub =
+    !loadingEvents &&
+    live.length === 0 &&
+    upcoming.length === 0 &&
+    drafts.length === 0 &&
+    ended.length === 0;
+
   const joinRoom = async (roomCode: string) => {
     if (!roomCode) {
       setError('This event has no room code yet.');
@@ -121,8 +127,9 @@ export function MyEventsPage() {
     <>
       <div className="zl-page-head">
         <div>
+          <p className="zl-page-eyebrow">Hosting</p>
           <h1>My events</h1>
-          <p>Events you created — join when they go live</p>
+          <p>Create, publish, and host sessions with a shareable room code.</p>
         </div>
         <div className="zl-page-head-actions">
           <Link
@@ -136,6 +143,7 @@ export function MyEventsPage() {
             className="zl-btn zl-btn-ghost zl-btn-sm"
             onClick={() => void loadEvents()}
             disabled={loadingEvents}
+            aria-label="Refresh events"
           >
             Refresh
           </button>
@@ -145,6 +153,14 @@ export function MyEventsPage() {
       {notice ? (
         <div className="zl-alert zl-alert-success" role="status">
           {notice}
+          <button
+            type="button"
+            className="zl-alert-dismiss"
+            aria-label="Dismiss"
+            onClick={() => setNotice(null)}
+          >
+            ×
+          </button>
         </div>
       ) : null}
 
@@ -156,13 +172,46 @@ export function MyEventsPage() {
 
       {loadingEvents ? (
         <PortalLoading message="Loading your events…" />
+      ) : isEmptyHub ? (
+        <section className="zl-empty-hero" aria-label="No events yet">
+          <div className="zl-empty-hero-mark" aria-hidden>
+            <img src="/assets/imgs/logo-zenleader.png" alt="" />
+          </div>
+          <h2>Host your first event</h2>
+          <p>
+            Publish a session, share the room code, and join from Meet when it
+            goes live.
+          </p>
+          <Link className="zl-btn zl-btn-accent" to="/my-events/create">
+            Create event
+          </Link>
+        </section>
       ) : (
         <>
+          <div className="zl-stat-strip" aria-label="Event summary">
+            <div className="zl-stat">
+              <strong>{live.length}</strong>
+              <span>Live</span>
+            </div>
+            <div className="zl-stat">
+              <strong>{upcoming.length}</strong>
+              <span>Upcoming</span>
+            </div>
+            <div className="zl-stat">
+              <strong>{drafts.length}</strong>
+              <span>Drafts</span>
+            </div>
+            <div className="zl-stat">
+              <strong>{ended.length}</strong>
+              <span>Ended</span>
+            </div>
+          </div>
+
           <section id="my-live-now" className="zl-section">
             <div className="zl-section-head">
               <div>
                 <h2>Live now</h2>
-                <p>Your sessions that are live right now</p>
+                <p>Sessions you can join immediately</p>
               </div>
               {live.length > 0 ? (
                 <span className="zl-badge-live">
@@ -172,8 +221,8 @@ export function MyEventsPage() {
               ) : null}
             </div>
             {live.length === 0 ? (
-              <div className="zl-empty">
-                None of your events are live right now.
+              <div className="zl-empty zl-empty-compact">
+                Nothing live right now.
               </div>
             ) : (
               <div className="zl-list">
@@ -182,7 +231,7 @@ export function MyEventsPage() {
                     key={event.id}
                     event={event}
                     variant="live"
-                    relationHint={CREATED_HINT}
+                    compactMeta
                     joiningCode={joiningCode}
                     onJoin={(code) => void joinRoom(code)}
                   />
@@ -195,15 +244,14 @@ export function MyEventsPage() {
             <div className="zl-section-head">
               <div>
                 <h2>Upcoming</h2>
-                <p>Published events that have not started yet</p>
+                <p>Published events waiting to start</p>
               </div>
               <span className="zl-count-chip">{upcoming.length}</span>
             </div>
             {upcoming.length === 0 ? (
-              <div className="zl-empty">
+              <div className="zl-empty zl-empty-compact">
                 No upcoming published events.{' '}
-                <Link to="/my-events/create">Create an event</Link> to get a
-                shareable room code.
+                <Link to="/my-events/create">Create one</Link>
               </div>
             ) : (
               <div className="zl-list">
@@ -212,7 +260,7 @@ export function MyEventsPage() {
                     key={event.id}
                     event={event}
                     variant="upcoming"
-                    relationHint={CREATED_HINT}
+                    compactMeta
                     joiningCode={joiningCode}
                     onJoin={(code) => void joinRoom(code)}
                   />
@@ -225,12 +273,12 @@ export function MyEventsPage() {
             <div className="zl-section-head">
               <div>
                 <h2>Drafts</h2>
-                <p>Events you created but have not published yet</p>
+                <p>Not published yet</p>
               </div>
               <span className="zl-count-chip">{drafts.length}</span>
             </div>
             {drafts.length === 0 ? (
-              <div className="zl-empty">No draft events.</div>
+              <div className="zl-empty zl-empty-compact">No drafts.</div>
             ) : (
               <div className="zl-list">
                 {drafts.map((event) => (
@@ -238,7 +286,7 @@ export function MyEventsPage() {
                     key={event.id}
                     event={event}
                     variant="draft"
-                    relationHint={CREATED_HINT}
+                    compactMeta
                     joiningCode={joiningCode}
                     onJoin={(code) => void joinRoom(code)}
                   />
@@ -257,7 +305,9 @@ export function MyEventsPage() {
                 <span className="zl-count-chip">{ended.length}</span>
               </summary>
               {ended.length === 0 ? (
-                <div className="zl-empty">No ended events yet.</div>
+                <div className="zl-empty zl-empty-compact">
+                  No ended events yet.
+                </div>
               ) : (
                 <div className="zl-list zl-list-ended">
                   {ended.map((event) => (
@@ -265,7 +315,7 @@ export function MyEventsPage() {
                       key={event.id}
                       event={event}
                       variant="ended"
-                      relationHint={CREATED_HINT}
+                      compactMeta
                       joiningCode={joiningCode}
                       onJoin={(code) => void joinRoom(code)}
                     />
