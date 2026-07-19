@@ -1,17 +1,18 @@
-# plugNmeet-client (ZenLeader fork)
+# zenleader-meet-client
 
-Frontend UI for [plugNmeet-server](https://github.com/silentlamp/plugNmeet-server) — customized fork for **ZenLeader Meet** + learner portal.
+Frontend UI for [zenleader-meet-server](https://github.com/silentlamp/zenleader-meet-server) — customized fork for **ZenLeader Meet** + learner portal.
 
-Upstream: [mynaparrot/plugNmeet-client](https://github.com/mynaparrot/plugNmeet-client).
+Upstream: [mynaparrot/plugNmeet-client](https://github.com/mynaparrot/plugNmeet-client).  
+Former fork name: `silentlamp/plugNmeet-client` (GitHub redirects).
 
 ## ZenLeader branch & CI/CD (important)
 
-This repo is the **silentlamp** fork. Day-to-day ZenLeader work and production deploy do **not** use GitHub `main`.
+This repo is the **silentlamp** ZenLeader Meet client. Day-to-day work and production deploy do **not** use GitHub `main`.
 
 | Item                    | Value                                                                                            |
 | ----------------------- | ------------------------------------------------------------------------------------------------ |
 | Working / deploy branch | **`zenleader/dev`**                                                                              |
-| Remote                  | `origin` → `https://github.com/silentlamp/plugNmeet-client.git`                                  |
+| Remote                  | `origin` → `https://github.com/silentlamp/zenleader-meet-client.git`                             |
 | CI workflow             | [`.github/workflows/deploy-zenleader-client.yml`](.github/workflows/deploy-zenleader-client.yml) |
 | Trigger                 | `push` to **`zenleader/dev`** (or `workflow_dispatch`)                                           |
 | Deploys                 | Meet UI → `/opt/plugNmeet/client/dist` **and** portal → `/var/www/portal.zenleader.xyz`          |

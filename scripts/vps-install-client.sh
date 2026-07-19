@@ -33,7 +33,7 @@ fi
 
 {
   echo "client_commit=$(git -C /opt/plugNmeet rev-parse --short HEAD 2>/dev/null || echo manual)"
-  echo "client_remote=silentlamp/plugNmeet-client"
+  echo "client_remote=silentlamp/zenleader-meet-client"
   echo "built_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo "installed_by=manual-gcloud"
   echo "portal_host=portal.zenleader.xyz"

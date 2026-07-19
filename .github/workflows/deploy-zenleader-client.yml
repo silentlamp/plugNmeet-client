@@ -1,6 +1,6 @@
 name: Deploy ZenLeader PlugNMeet Client Fork
 
-# Build silentlamp/plugNmeet-client (zenleader/dev) and sync dist to VPS /opt/plugNmeet/client/dist
+# Build silentlamp/zenleader-meet-client (zenleader/dev) and sync dist to VPS /opt/plugNmeet/client/dist
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-plugnmeet-client-zenleader
+  group: deploy-zenleader-meet-client
   cancel-in-progress: true
 
 jobs:
@@ -88,7 +88,7 @@ jobs:
             rm -f "$DEST/assets/portal-env.js" "$DEST/assets/portal-env.sample.js"
             {
               echo "client_commit=${{ github.sha }}"
-              echo "client_remote=silentlamp/plugNmeet-client"
+              echo "client_remote=silentlamp/zenleader-meet-client"
               echo "built_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
               echo "portal_host=portal.zenleader.xyz"
             } > /opt/plugNmeet/.zenleader-client-info 2>/dev/null || {
