@@ -6,7 +6,7 @@ import {
   redirectToMeeting,
   ZenApiError,
 } from '../api/zenleaderApi';
-import { ZenBreathingLoader } from '../../components/extra-pages/ZenBreathingLoader';
+import { ZenBlockLoader } from '../../components/extra-pages/ZenBreathingLoader';
 import { ZENLEADER_ROOM_CODE_RE } from '../../helpers/utils';
 
 /**
@@ -73,7 +73,7 @@ export function JoinMeetingPage() {
   return (
     <div className="zl-join-page">
       <div className="zl-join-card zl-join-card--loading">
-        <ZenBreathingLoader size={64} label="Joining meeting" />
+        <ZenBlockLoader size={40} label="Joining meeting" />
         <h1>Joining meeting…</h1>
         <p>
           Preparing your session for <code>{roomCode}</code>

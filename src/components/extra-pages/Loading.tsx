@@ -1,7 +1,5 @@
-import React from 'react';
-
 import './style.css';
-import ZenBreathingLoader from './ZenBreathingLoader';
+import ZenBlockLoader from './ZenBreathingLoader';
 import { resolveZenLeaderLogoPath } from '../../helpers/branding';
 import { getConfigValue } from '../../helpers/utils';
 
@@ -10,7 +8,7 @@ interface ILoadingProps {
 }
 
 /**
- * Full-page Meet connect loader — logo + zen breathing rings + status text.
+ * Full-page Meet connect loader — logo + horizontal block wave + status text.
  */
 const Loading = ({ text }: ILoadingProps) => {
   const assetPath = getConfigValue(
@@ -37,7 +35,7 @@ const Loading = ({ text }: ILoadingProps) => {
           alt="ZenLeader"
           className="h-12 w-auto max-w-[140px] object-contain"
         />
-        <ZenBreathingLoader size={72} label={status} />
+        <ZenBlockLoader size={44} label={status} />
         <p className="text-sm font-medium text-gray-900 dark:text-white capitalize tracking-wide">
           {status}
         </p>

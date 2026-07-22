@@ -1,16 +1,16 @@
-import { ZenBreathingLoader } from '../../components/extra-pages/ZenBreathingLoader';
+import { ZenBlockLoader } from '../../components/extra-pages/ZenBreathingLoader';
 
 type PortalLoadingProps = {
   message: string;
 };
 
 /**
- * Portal card loading state — zen breathing rings + status text.
+ * Portal card loading state — horizontal block wave + status text.
  */
 export function PortalLoading({ message }: PortalLoadingProps) {
   return (
     <div className="zl-loading">
-      <ZenBreathingLoader size={56} label={message} />
+      <ZenBlockLoader size={36} label={message} />
       <span>{message}</span>
     </div>
   );

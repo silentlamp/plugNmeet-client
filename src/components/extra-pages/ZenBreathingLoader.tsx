@@ -1,6 +1,6 @@
 import React from 'react';
 
-type ZenBreathingLoaderProps = {
+type ZenBlockLoaderProps = {
   size?: number;
   compact?: boolean;
   className?: string;
@@ -8,21 +8,17 @@ type ZenBreathingLoaderProps = {
 };
 
 /**
- * Zen breathing-ripple loader shared with mobile + admin.
- * Soft concentric rings (navy / green) instead of a mechanical spinner.
+ * Horizontal square-block wave loader shared with mobile + admin.
+ * Navy / green blocks instead of concentric rings or a circular spinner.
  */
-export function ZenBreathingLoader({
-  size = 48,
+export function ZenBlockLoader({
+  size = 40,
   compact = false,
   className = '',
   label = 'Loading',
-}: ZenBreathingLoaderProps) {
-  const ringCount = compact ? 2 : 3;
-  const classes = [
-    'zen-breathing-loader',
-    compact ? 'is-compact' : '',
-    className,
-  ]
+}: ZenBlockLoaderProps) {
+  const count = compact ? 3 : 4;
+  const classes = ['zen-block-loader', compact ? 'is-compact' : '', className]
     .filter(Boolean)
     .join(' ');
 
@@ -31,14 +27,13 @@ export function ZenBreathingLoader({
       role="status"
       aria-label={label}
       className={classes}
-      style={{ width: size, height: size }}
+      style={{ height: size, fontSize: size }}
     >
-      <span className="zen-breathing-core" aria-hidden />
-      {Array.from({ length: ringCount }).map((_, index) => (
+      {Array.from({ length: count }).map((_, index) => (
         <span
           key={index}
-          className="zen-breathing-ring"
-          style={{ animationDelay: `${(-index * 0.8).toFixed(1)}s` }}
+          className="zen-block-dot"
+          style={{ animationDelay: `${index * 0.12}s` }}
           aria-hidden
         />
       ))}
@@ -46,4 +41,7 @@ export function ZenBreathingLoader({
   );
 }
 
-export default ZenBreathingLoader;
+/** @deprecated Prefer ZenBlockLoader. */
+export const ZenBreathingLoader = ZenBlockLoader;
+
+export default ZenBlockLoader;
