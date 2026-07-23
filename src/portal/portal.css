@@ -1083,7 +1083,7 @@ body {
 .zl-empty,
 .zl-loading {
   text-align: center;
-  padding: 28px 14px;
+  padding: 22px 14px;
   color: var(--zl-muted);
   font-size: 0.88rem;
   border: 1px dashed var(--zl-border);
@@ -1093,7 +1093,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 10px;
 }
 
 .zl-empty-compact {
