@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { RefreshCw } from 'lucide-react';
+
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import type { EventResponse } from '../api/types';
 import {
@@ -10,7 +16,6 @@ import {
   ZenApiError,
 } from '../api/zenleaderApi';
 import { EventCard } from '../components/EventCard';
-import { PortalLoading } from '../components/PortalLoading';
 import { partitionEvents } from '../utils/eventHelpers';
 
 const POLL_MS = 20_000;
@@ -88,51 +93,72 @@ export function EventsPage() {
   };
 
   return (
-    <>
-      <div className="zl-page-head">
-        <div>
-          <h1>Saved events</h1>
-          <p>Events you saved — join when they go live</p>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Saved events
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Events you saved — join when they go live
+          </p>
         </div>
-        <button
+        <Button
           type="button"
-          className="zl-btn zl-btn-ghost zl-btn-sm"
+          variant="outline"
+          size="sm"
           onClick={() => void loadEvents()}
           disabled={loadingEvents}
         >
+          <RefreshCw
+            className={loadingEvents ? 'size-4 animate-spin' : 'size-4'}
+          />
           Refresh
-        </button>
+        </Button>
       </div>
 
       {error ? (
-        <div className="zl-alert" role="alert">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : null}
 
       {loadingEvents ? (
-        <PortalLoading message="Loading your events…" />
+        <div
+          className="flex flex-col gap-3"
+          aria-busy="true"
+          aria-label="Loading your events"
+        >
+          <Skeleton className="h-28 w-full rounded-xl" />
+          <Skeleton className="h-28 w-full rounded-xl" />
+          <Skeleton className="h-28 w-full rounded-xl" />
+        </div>
       ) : (
         <>
-          <section id="live-now" className="zl-section">
-            <div className="zl-section-head">
-              <div>
-                <h2>Live now</h2>
-                <p>Sessions you can join right now</p>
+          <section id="live-now" className="space-y-3">
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <div className="space-y-1">
+                <h2 className="text-lg font-semibold">Live now</h2>
+                <p className="text-muted-foreground text-sm">
+                  Sessions you can join right now
+                </p>
               </div>
               {live.length > 0 ? (
-                <span className="zl-badge-live">
-                  <span className="zl-live-dot" aria-hidden />
+                <Badge variant="default" className="gap-1.5">
+                  <span
+                    className="size-1.5 animate-pulse rounded-full bg-current"
+                    aria-hidden
+                  />
                   {live.length} live
-                </span>
+                </Badge>
               ) : null}
             </div>
             {live.length === 0 ? (
-              <div className="zl-empty">
+              <p className="text-muted-foreground rounded-xl border border-dashed px-4 py-8 text-center text-sm">
                 No live sessions right now. Check Upcoming below.
-              </div>
+              </p>
             ) : (
-              <div className="zl-list">
+              <div className="flex flex-col gap-3">
                 {live.map((event) => (
                   <EventCard
                     key={event.id}
@@ -146,21 +172,23 @@ export function EventsPage() {
             )}
           </section>
 
-          <section id="upcoming" className="zl-section">
-            <div className="zl-section-head">
-              <div>
-                <h2>Upcoming</h2>
-                <p>Saved events that have not started yet</p>
+          <section id="upcoming" className="space-y-3">
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <div className="space-y-1">
+                <h2 className="text-lg font-semibold">Upcoming</h2>
+                <p className="text-muted-foreground text-sm">
+                  Saved events that have not started yet
+                </p>
               </div>
-              <span className="zl-count-chip">{upcoming.length}</span>
+              <Badge variant="secondary">{upcoming.length}</Badge>
             </div>
             {upcoming.length === 0 ? (
-              <div className="zl-empty">
+              <p className="text-muted-foreground rounded-xl border border-dashed px-4 py-8 text-center text-sm">
                 No upcoming saved events. Mark events as interested in the
                 ZenLeader app to see them here.
-              </div>
+              </p>
             ) : (
-              <div className="zl-list">
+              <div className="flex flex-col gap-3">
                 {upcoming.map((event) => (
                   <EventCard
                     key={event.id}
@@ -174,34 +202,40 @@ export function EventsPage() {
             )}
           </section>
 
-          <section id="ended" className="zl-section zl-section-muted">
-            <details>
-              <summary className="zl-section-head zl-summary">
-                <div>
-                  <h2>Ended</h2>
-                  <p>Past events you were interested in</p>
+          <section id="ended" className="space-y-3">
+            <details className="group">
+              <summary className="flex cursor-pointer list-none flex-wrap items-end justify-between gap-2 [&::-webkit-details-marker]:hidden">
+                <div className="space-y-1">
+                  <h2 className="text-lg font-semibold">Ended</h2>
+                  <p className="text-muted-foreground text-sm">
+                    Past events you were interested in
+                  </p>
                 </div>
-                <span className="zl-count-chip">{ended.length}</span>
+                <Badge variant="outline">{ended.length}</Badge>
               </summary>
-              {ended.length === 0 ? (
-                <div className="zl-empty">No ended events yet.</div>
-              ) : (
-                <div className="zl-list zl-list-ended">
-                  {ended.map((event) => (
-                    <EventCard
-                      key={event.id}
-                      event={event}
-                      variant="ended"
-                      joiningCode={joiningCode}
-                      onJoin={(code) => void joinRoom(code)}
-                    />
-                  ))}
-                </div>
-              )}
+              <div className="mt-3">
+                {ended.length === 0 ? (
+                  <p className="text-muted-foreground rounded-xl border border-dashed px-4 py-8 text-center text-sm">
+                    No ended events yet.
+                  </p>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {ended.map((event) => (
+                      <EventCard
+                        key={event.id}
+                        event={event}
+                        variant="ended"
+                        joiningCode={joiningCode}
+                        onJoin={(code) => void joinRoom(code)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
             </details>
           </section>
         </>
       )}
-    </>
+    </div>
   );
 }

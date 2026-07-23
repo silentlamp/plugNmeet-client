@@ -1,5 +1,17 @@
 import { useEffect, useState } from 'react';
 
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+
 import type { EventResponse } from '../api/types';
 import {
   eventAuthorName,
@@ -24,7 +36,7 @@ type EventCardProps = {
 };
 
 /**
- * Compact Dojo-style horizontal event row for the meet hub.
+ * Compact event card for the meet hub, built with shadcn Card / Badge / Button.
  *
  * Uses `event.thumbnailUrl` when present; falls back to the ZenLeader logo.
  *
@@ -95,96 +107,113 @@ export function EventCard({
   };
 
   return (
-    <article
-      className={`zl-row zl-row-${variant}${variant === 'live' ? ' zl-row-live' : ''}`}
+    <Card
+      className={
+        variant === 'live'
+          ? 'border-primary/40 shadow-sm ring-1 ring-primary/15'
+          : undefined
+      }
     >
-      <div className="zl-row-main">
-        <div className="zl-row-top">
-          <div className="zl-row-author">
+      <CardHeader className="flex-row items-start justify-between gap-3 space-y-0 pb-3">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <Avatar size="sm">
             {event.author?.avatarUrl ? (
-              <img
-                className="zl-avatar"
-                src={event.author.avatarUrl}
-                alt=""
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            ) : (
-              <span className="zl-avatar zl-avatar-fallback" aria-hidden>
-                {author.slice(0, 1).toUpperCase()}
-              </span>
-            )}
-            <div className="zl-row-author-text">
-              <span className="zl-author-name">{author}</span>
-              <span className="zl-author-hint">{hint}</span>
-            </div>
-          </div>
-
-          {variant === 'live' ? (
-            <span className="zl-live-pill">
-              <span className="zl-live-dot" aria-hidden />
-              LIVE
-            </span>
-          ) : null}
-          {variant === 'upcoming' ? (
-            <span className="zl-chip zl-chip-upcoming">Upcoming</span>
-          ) : null}
-          {variant === 'ended' ? (
-            <span className="zl-chip zl-chip-ended">Ended</span>
-          ) : null}
-          {variant === 'draft' ? (
-            <span className="zl-chip zl-chip-draft">Draft</span>
-          ) : null}
-        </div>
-
-        <div className="zl-row-body">
-          <div className="zl-row-copy">
-            <h3 className="zl-card-title">{event.title || 'Event'}</h3>
-            {event.description ? (
-              <p className="zl-card-desc">{event.description}</p>
+              <AvatarImage src={event.author.avatarUrl} alt="" />
             ) : null}
-            {timeLabel ? <p className="zl-card-time">{timeLabel}</p> : null}
-            {roomCode ? (
-              <div className="zl-room-code-row">
-                <span className="zl-room-code-label">Room code</span>
-                <code className="zl-room-code">{roomCode}</code>
-                <button
-                  type="button"
-                  className="zl-btn zl-btn-ghost zl-btn-xs"
-                  onClick={() => void copyRoomCode()}
-                >
-                  {copied ? 'Copied' : 'Copy'}
-                </button>
-              </div>
-            ) : null}
-          </div>
-
-          <div
-            className={`zl-row-thumb${hasThumbnail && thumbSrc === thumbnailUrl ? ' zl-row-thumb--photo' : ' zl-row-thumb--fallback'}`}
-          >
-            <img
-              src={thumbSrc}
-              alt={hasThumbnail ? event.title || 'Event cover' : ''}
-              onError={() => setThumbSrc(FALLBACK_THUMB)}
-            />
+            <AvatarFallback>{author.slice(0, 1).toUpperCase()}</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 leading-tight">
+            <p className="truncate text-sm font-medium">{author}</p>
+            <p className="text-muted-foreground truncate text-xs">{hint}</p>
           </div>
         </div>
-
         {variant === 'live' ? (
-          <div className="zl-row-actions">
-            <button
-              type="button"
-              className="zl-btn zl-btn-accent zl-btn-sm"
-              disabled={!canJoin || joiningCode !== null}
-              title={roomCode ? undefined : 'This event has no room yet'}
-              onClick={() => onJoin(roomCode)}
-            >
-              {busy ? 'Joining…' : 'Join live'}
-            </button>
-          </div>
+          <Badge className="gap-1.5 shrink-0">
+            <span
+              className="size-1.5 animate-pulse rounded-full bg-current"
+              aria-hidden
+            />
+            LIVE
+          </Badge>
         ) : null}
-      </div>
-    </article>
+        {variant === 'upcoming' ? (
+          <Badge variant="secondary" className="shrink-0">
+            Upcoming
+          </Badge>
+        ) : null}
+        {variant === 'ended' ? (
+          <Badge variant="outline" className="shrink-0">
+            Ended
+          </Badge>
+        ) : null}
+        {variant === 'draft' ? (
+          <Badge variant="outline" className="shrink-0">
+            Draft
+          </Badge>
+        ) : null}
+      </CardHeader>
+
+      <CardContent className="flex gap-4 pt-0">
+        <div className="min-w-0 flex-1 space-y-2">
+          <CardTitle className="text-base leading-snug">
+            {event.title || 'Event'}
+          </CardTitle>
+          {event.description ? (
+            <CardDescription className="line-clamp-2">
+              {event.description}
+            </CardDescription>
+          ) : null}
+          {timeLabel ? (
+            <p className="text-muted-foreground text-xs">{timeLabel}</p>
+          ) : null}
+          {roomCode ? (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="text-muted-foreground text-xs">Room code</span>
+              <code className="bg-muted rounded px-1.5 py-0.5 text-xs">
+                {roomCode}
+              </code>
+              <Button
+                type="button"
+                variant="ghost"
+                size="xs"
+                onClick={() => void copyRoomCode()}
+              >
+                {copied ? 'Copied' : 'Copy'}
+              </Button>
+            </div>
+          ) : null}
+        </div>
+        <div
+          className={`bg-muted relative size-20 shrink-0 overflow-hidden rounded-lg sm:size-24 ${
+            hasThumbnail && thumbSrc === thumbnailUrl ? '' : 'p-3'
+          }`}
+        >
+          <img
+            src={thumbSrc}
+            alt={hasThumbnail ? event.title || 'Event cover' : ''}
+            className={
+              hasThumbnail && thumbSrc === thumbnailUrl
+                ? 'size-full object-cover'
+                : 'size-full object-contain opacity-80'
+            }
+            onError={() => setThumbSrc(FALLBACK_THUMB)}
+          />
+        </div>
+      </CardContent>
+
+      {variant === 'live' ? (
+        <CardFooter className="pt-0">
+          <Button
+            type="button"
+            size="sm"
+            disabled={!canJoin || joiningCode !== null}
+            title={roomCode ? undefined : 'This event has no room yet'}
+            onClick={() => onJoin(roomCode)}
+          >
+            {busy ? 'Joining…' : 'Join live'}
+          </Button>
+        </CardFooter>
+      ) : null}
+    </Card>
   );
 }
